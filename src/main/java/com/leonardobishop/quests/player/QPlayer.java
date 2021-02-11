@@ -11,7 +11,10 @@ import com.leonardobishop.quests.quests.Quest;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class QPlayer {
 
@@ -43,7 +46,7 @@ public class QPlayer {
         }
 
         // Using `this` instead of searching again for this QPlayer
-        QMenuQuest qMenuQuest = new QMenuQuest(this, category.getId(), superMenu);
+        QMenuQuest qMenuQuest = new QMenuQuest(plugin, this, category.getId(), superMenu);
         List<Quest> quests = new ArrayList<>();
         for (String questid : category.getRegisteredQuestIds()) {
             Quest quest = plugin.getQuestManager().getQuestById(questid);
@@ -84,10 +87,10 @@ public class QPlayer {
         }
 
         if (Options.CATEGORIES_ENABLED.getBooleanValue()) {
-            QMenuCategory qMenuCategory = new QMenuCategory(plugin.getPlayerManager().getPlayer(player.getUniqueId()));
+            QMenuCategory qMenuCategory = new QMenuCategory(plugin, plugin.getPlayerManager().getPlayer(player.getUniqueId()));
             List<QMenuQuest> questMenus = new ArrayList<>();
             for (Category category : plugin.getQuestManager().getCategories()) {
-                QMenuQuest qMenuQuest = new QMenuQuest(plugin.getPlayerManager().getPlayer(player.getUniqueId()), category.getId(), qMenuCategory);
+                QMenuQuest qMenuQuest = new QMenuQuest(plugin, plugin.getPlayerManager().getPlayer(player.getUniqueId()), category.getId(), qMenuCategory);
                 List<Quest> quests = new ArrayList<>();
                 for (String questid : category.getRegisteredQuestIds()) {
                     Quest quest = plugin.getQuestManager().getQuestById(questid);
@@ -103,7 +106,7 @@ public class QPlayer {
             player.openInventory(qMenuCategory.toInventory(1));
             EventInventory.track(player.getUniqueId(), qMenuCategory);
         } else {
-            QMenuQuest qMenuQuest = new QMenuQuest(plugin.getPlayerManager().getPlayer(player.getUniqueId()), "", null);
+            QMenuQuest qMenuQuest = new QMenuQuest(plugin, plugin.getPlayerManager().getPlayer(player.getUniqueId()), "", null);
             List<Quest> quests = new ArrayList<>();
             for (Map.Entry<String, Quest> entry : plugin.getQuestManager().getQuests().entrySet()) {
                 quests.add(entry.getValue());

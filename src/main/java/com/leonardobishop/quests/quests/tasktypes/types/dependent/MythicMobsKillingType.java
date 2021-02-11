@@ -1,4 +1,4 @@
-package com.leonardobishop.quests.quests.tasktypes.types;
+package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 
 import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
@@ -11,28 +11,30 @@ import com.leonardobishop.quests.quests.Task;
 import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public final class DealDamageTaskType extends TaskType {
+public final class MythicMobsKillingType extends TaskType {
 
     private List<ConfigValue> creatorConfigValues = new ArrayList<>();
 
-    public DealDamageTaskType() {
-        super("dealdamage", "toasted", "Deal a certain amount of damage.");
-        this.creatorConfigValues.add(new ConfigValue("amount", true, "Amount of damage you need to deal"));
-        this.creatorConfigValues.add(new ConfigValue("worlds", false, "Permitted worlds the player must be in."));
+    public MythicMobsKillingType() {
+        super("mythicmobs_killing", "LMBishop", "Kill a set amount of a MythicMobs entity.");
+        this.creatorConfigValues.add(new ConfigValue("amount", true, "Amount of mobs to be killed."));
+        this.creatorConfigValues.add(new ConfigValue("name", true, "The 'internal name' of the MythicMob."));
     }
 
     @Override
     public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
         ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+        TaskUtils.configValidateExists(root + ".name", config.get("name"), problems, "name", super.getType());
         if (TaskUtils.configValidateExists(root + ".amount", config.get("amount"), problems, "amount", super.getType()))
             TaskUtils.configValidateInt(root + ".amount", config.get("amount"), problems, false, true, "amount");
         return problems;
@@ -44,16 +46,21 @@ public final class DealDamageTaskType extends TaskType {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onDamage(EntityDamageByEntityEvent e) {
+    public void onMobKill(MythicMobDeathEvent event) {
+        Entity killer = event.getKiller();
+        Entity mob = event.getEntity();
 
-        if (!(e.getDamager() instanceof Player)) {
+        if (mob == null || mob instanceof Player) {
             return;
         }
 
-        Player player = (Player) e.getDamager();
-        double damage = e.getDamage();
+        if (killer == null) {
+            return;
+        }
 
-        QPlayer qPlayer = QuestsAPI.getPlayerManager().getPlayer(player.getUniqueId(), true);
+        String mobName = event.getMobType().getInternalName();
+
+        QPlayer qPlayer = QuestsAPI.getPlayerManager().getPlayer(killer.getUniqueId(), true);
         QuestProgressFile questProgressFile = qPlayer.getQuestProgressFile();
 
         for (Quest quest : super.getRegisteredQuests()) {
@@ -61,7 +68,7 @@ public final class DealDamageTaskType extends TaskType {
                 QuestProgress questProgress = questProgressFile.getQuestProgress(quest);
 
                 for (Task task : quest.getTasksOfType(super.getType())) {
-                    if (!TaskUtils.validateWorld(player, task)) continue;
+                    if (!TaskUtils.validateWorld(killer.getWorld().getName(), task)) continue;
 
                     TaskProgress taskProgress = questProgress.getTaskProgress(task.getId());
 
@@ -69,23 +76,29 @@ public final class DealDamageTaskType extends TaskType {
                         continue;
                     }
 
-                    double progressDamage;
-                    int damageNeeded = (int) task.getConfigValue("amount");
+                    String configName = (String) task.getConfigValue("name");
 
-                    if (taskProgress.getProgress() == null) {
-                        progressDamage = 0.0;
-                    } else {
-                        progressDamage = (double) taskProgress.getProgress();
+                    if (!mobName.equals(configName)) {
+                        return;
                     }
 
-                    taskProgress.setProgress(progressDamage + damage);
+                    int mobKillsNeeded = (int) task.getConfigValue("amount");
 
-                    if (((double) taskProgress.getProgress()) >= (double) damageNeeded) {
-                        taskProgress.setProgress(damageNeeded);
+                    int progressKills;
+                    if (taskProgress.getProgress() == null) {
+                        progressKills = 0;
+                    } else {
+                        progressKills = (int) taskProgress.getProgress();
+                    }
+
+                    taskProgress.setProgress(progressKills + 1);
+
+                    if (((int) taskProgress.getProgress()) >= mobKillsNeeded) {
                         taskProgress.setCompleted(true);
                     }
                 }
             }
         }
     }
+
 }

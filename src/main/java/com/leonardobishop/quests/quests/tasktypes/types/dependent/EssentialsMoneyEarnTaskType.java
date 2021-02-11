@@ -1,4 +1,4 @@
-package com.leonardobishop.quests.quests.tasktypes.types;
+package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 
 import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
@@ -11,28 +11,29 @@ import com.leonardobishop.quests.quests.Task;
 import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
+import net.ess3.api.events.UserBalanceUpdateEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import us.talabrek.ultimateskyblock.api.event.uSkyBlockScoreChangedEvent;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public final class uSkyBlockLevelType extends TaskType {
+public class EssentialsMoneyEarnTaskType extends TaskType {
 
     private List<ConfigValue> creatorConfigValues = new ArrayList<>();
 
-    public uSkyBlockLevelType() {
-        super("uskyblock_level", "LMBishop", "Reach a certain island level for uSkyBlock.");
-        this.creatorConfigValues.add(new ConfigValue("level", true, "Minimum island level needed."));
+    public EssentialsMoneyEarnTaskType() {
+        super("essentials_moneyearn", "LMBishop", "Earn a set amount of money.");
+        this.creatorConfigValues.add(new ConfigValue("amount", true, "Amount of money to earn."));
     }
 
     @Override
     public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
         ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
-        if (TaskUtils.configValidateExists(root + ".level", config.get("level"), problems, "level", super.getType()))
-            TaskUtils.configValidateInt(root + ".level", config.get("level"), problems, false, false, "level");
+        if (TaskUtils.configValidateExists(root + ".amount", config.get("amount"), problems, "amount", super.getType()))
+            TaskUtils.configValidateInt(root + ".amount", config.get("amount"), problems, false, false, "amount");
         return problems;
     }
 
@@ -43,7 +44,7 @@ public final class uSkyBlockLevelType extends TaskType {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onIslandLevel(uSkyBlockScoreChangedEvent event) {
+    public void onMoneyEarn(UserBalanceUpdateEvent event) {
         QPlayer qPlayer = QuestsAPI.getPlayerManager().getPlayer(event.getPlayer().getUniqueId(), true);
         if (qPlayer == null) {
             return;
@@ -62,11 +63,16 @@ public final class uSkyBlockLevelType extends TaskType {
                         continue;
                     }
 
-                    double islandLevelNeeded = (double) (int) task.getConfigValue("level");
+                    int earningsNeeded = (int) task.getConfigValue("amount");
 
-                    taskProgress.setProgress(event.getScore().getScore());
+                    BigDecimal current = (BigDecimal) taskProgress.getProgress();
+                    if (current == null) {
+                        current = new BigDecimal(0);
+                    }
+                    BigDecimal newProgress = current.add(event.getNewBalance().subtract(event.getOldBalance()));
+                    taskProgress.setProgress(newProgress);
 
-                    if (((double) taskProgress.getProgress()) >= islandLevelNeeded) {
+                    if (newProgress.compareTo(BigDecimal.valueOf(earningsNeeded)) > 0) {
                         taskProgress.setCompleted(true);
                     }
                 }

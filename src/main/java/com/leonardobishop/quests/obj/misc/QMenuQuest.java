@@ -1,12 +1,13 @@
 package com.leonardobishop.quests.obj.misc;
 
-import com.leonardobishop.quests.player.QPlayer;
-import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
-import com.leonardobishop.quests.quests.Quest;
 import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.obj.Items;
 import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.player.QPlayer;
+import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
+import com.leonardobishop.quests.quests.Quest;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -19,18 +20,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class QMenuQuest implements QMenu {
 
+    private final Quests plugin;
     private final HashMap<Integer, String> slotsToQuestIds = new HashMap<>();
-    private int backButtonLocation = -1;
-    private int pagePrevLocation = -1;
-    private int pageNextLocation = -1;
-    private int currentPage = -1;
-    private boolean backButtonEnabled = true;
     private final QMenuCategory superMenu;
     private final String categoryName;
     private final int pageSize = 45;
     private final QPlayer owner;
 
-    public QMenuQuest(QPlayer owner, String categoryName, QMenuCategory superMenu) {
+    private int backButtonLocation = -1;
+    private int pagePrevLocation = -1;
+    private int pageNextLocation = -1;
+    private int currentPage = -1;
+    private boolean backButtonEnabled = true;
+
+    public QMenuQuest(Quests plugin, QPlayer owner, String categoryName, QMenuCategory superMenu) {
+        this.plugin = plugin;
         this.owner = owner;
         this.categoryName = categoryName;
         this.superMenu = superMenu;
@@ -133,7 +137,8 @@ public class QMenuQuest implements QMenu {
                     ItemStack is = replaceItemStack(Items.QUEST_COOLDOWN.getItem(), placeholders);
                     inventory.setItem(invSlot, is);
                 } else {
-                    inventory.setItem(invSlot, Quests.get().getQuestManager().getQuestById(quest.getId()).getDisplayItem().toItemStack(quest, owner.getQuestProgressFile(), questProgress));
+                    inventory.setItem(invSlot, replaceItemStack(Quests.get().getQuestManager().getQuestById(
+                            quest.getId()).getDisplayItem().toItemStack(quest, owner.getQuestProgressFile(), questProgress)));
                 }
             }
             invSlot++;
@@ -214,18 +219,31 @@ public class QMenuQuest implements QMenu {
         return superMenu;
     }
 
+    public ItemStack replaceItemStack(ItemStack is) {
+        return replaceItemStack(is, Collections.emptyMap());
+    }
+
     public ItemStack replaceItemStack(ItemStack is, Map<String, String> placeholders) {
         ItemStack newItemStack = is.clone();
         List<String> lore = newItemStack.getItemMeta().getLore();
         List<String> newLore = new ArrayList<>();
         ItemMeta ism = newItemStack.getItemMeta();
+        Player player = Bukkit.getPlayer(owner.getUuid());
         if (lore != null) {
             for (String s : lore) {
                 for (Map.Entry<String, String> entry : placeholders.entrySet()) {
                     s = s.replace(entry.getKey(), entry.getValue());
-                    ism.setDisplayName(ism.getDisplayName().replace(entry.getKey(), entry.getValue()));
+                    if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
+                        s = plugin.getPlaceholderAPIHook().replacePlaceholders(player, s);
+                    }
                 }
                 newLore.add(s);
+            }
+        }
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            ism.setDisplayName(ism.getDisplayName().replace(entry.getKey(), entry.getValue()));
+            if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
+                ism.setDisplayName(plugin.getPlaceholderAPIHook().replacePlaceholders(player, ism.getDisplayName()));
             }
         }
         ism.setLore(newLore);

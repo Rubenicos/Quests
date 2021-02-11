@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.leonardobishop.quests'
-version = '2.11'
+version = '2.13'
 
 processResources {
     from(sourceSets.main.resources.srcDirs) {
@@ -36,6 +36,8 @@ repositories {
     maven { url = 'https://mvn.lumine.io/repository/maven-public/' }
     // PlaceholderAPI
     maven { url = 'http://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    // EssentialsX
+    maven { url = 'https://repo.essentialsx.net/releases/' }
     // JitPack
     maven { url = 'https://jitpack.io' }
     mavenCentral()
@@ -58,7 +60,7 @@ dependencies {
         exclude group: 'org.mongodb', module: 'mongodb-driver'
     }
     // IridiumSkyblock
-    compileOnly 'com.github.IridiumLLC:IridiumSkyblock:master'
+    compileOnly 'com.github.IridiumLLC:IridiumSkyblock:master-SNAPSHOT'
     // uSkyBlock
     compileOnly 'com.github.rlf:uSkyBlock-API:2.6.4'
     // MythicMobs
@@ -75,6 +77,8 @@ dependencies {
     }
     // PlaceholderAPI
     compileOnly 'me.clip:placeholderapi:2.10.9'
+    // EssentialsX
+    compileOnly "net.ess3:EssentialsX:2.18.2"
 
     compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
 }

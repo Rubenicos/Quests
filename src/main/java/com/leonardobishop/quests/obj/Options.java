@@ -4,10 +4,11 @@ import com.leonardobishop.quests.Quests;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public enum Options {
-
     CATEGORIES_ENABLED("options.categories-enabled"),
     TRIM_GUI_SIZE("options.trim-gui-size"),
     QUESTS_START_LIMIT("options.quest-started-limit"),
@@ -15,6 +16,7 @@ public enum Options {
     GUI_HIDE_LOCKED("options.gui-hide-locked"),
     GUI_HIDE_QUESTS_NOPERMISSION("options.gui-hide-quests-nopermission"),
     GUI_HIDE_CATEGORIES_NOPERMISSION("options.gui-hide-categories-nopermission"),
+    GUI_USE_PLACEHOLDERAPI("options.gui-use-placeholderapi"),
     GUITITLE_QUESTS_CATEGORY("options.guinames.quests-category"),
     GUITITLE_QUESTS("options.guinames.quests-menu"),
     GUITITLE_DAILY_QUESTS("options.guinames.daily-quests"),
@@ -25,6 +27,8 @@ public enum Options {
     TAB_COMPLETE_ENABLED("options.tab-completion.enabled"),
     ERROR_CHECKING_OVERRIDE("options.error-checking.override-errors"),
     QUEST_AUTOSTART("options.quest-autostart");
+
+    private static final Map<String, Boolean> cachedBooleans = new HashMap<>();
 
     private final String path;
 
@@ -49,7 +53,13 @@ public enum Options {
     }
 
     public boolean getBooleanValue() {
-        return Quests.get().getConfig().getBoolean(path);
+        Boolean val = cachedBooleans.get(path);
+        if (val != null) {
+            return val;
+        } else {
+            cachedBooleans.put(path, Quests.get().getConfig().getBoolean(path));
+            return getBooleanValue();
+        }
     }
 
     public boolean getBooleanValue(boolean def) {
@@ -70,5 +80,9 @@ public enum Options {
             colored.add(ChatColor.translateAlternateColorCodes('&', line));
         }
         return colored;
+    }
+
+    public static void invalidateCaches() {
+        cachedBooleans.clear();
     }
 }

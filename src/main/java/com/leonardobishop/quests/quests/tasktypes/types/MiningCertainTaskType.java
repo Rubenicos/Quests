@@ -11,7 +11,6 @@ import com.leonardobishop.quests.quests.Task;
 import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -165,7 +164,8 @@ public final class MiningCertainTaskType extends TaskType {
             short blockData = block.getData();
 
             if (blockType == material) {
-                return configData == null || ((int) blockData) == comparableData;
+            	if (((split.length == 1 && configData == null) || ((int) blockData) == comparableData))
+                	return true;
             }
         }
         return false;

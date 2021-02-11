@@ -36,6 +36,10 @@ public class QuestProgressFile {
     public boolean completeQuest(Quest quest) {
         QuestProgress questProgress = getQuestProgress(quest);
         questProgress.setStarted(false);
+        for (TaskProgress taskProgress : questProgress.getTaskProgress()) {
+            taskProgress.setCompleted(false);
+            taskProgress.setProgress(null);
+        }
         questProgress.setCompleted(true);
         questProgress.setCompletedBefore(true);
         questProgress.setCompletionDate(System.currentTimeMillis());
@@ -76,7 +80,7 @@ public class QuestProgressFile {
      */
     public QuestStartResult canStartQuest(Quest quest) {
         Player p = Bukkit.getPlayer(playerUUID);
-        if (getStartedQuests().size() >= Options.QUESTS_START_LIMIT.getIntValue()) {
+        if (getStartedQuests().size() >= Options.QUESTS_START_LIMIT.getIntValue() && !Options.QUEST_AUTOSTART.getBooleanValue()) {
             return QuestStartResult.QUEST_LIMIT_REACHED;
         }
         QuestProgress questProgress = getQuestProgress(quest);
@@ -192,6 +196,13 @@ public class QuestProgressFile {
                 }
                 for (String s : quest.getStartString()) {
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', s));
+                }
+            }
+            for (Task task : quest.getTasks()) {
+                try {
+                    plugin.getTaskTypeManager().getTaskType(task.getType()).onStart(quest, task, playerUUID);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -367,9 +378,9 @@ public class QuestProgressFile {
     public boolean generateBlankQuestProgress(String questid) {
         if (plugin.getQuestManager().getQuestById(questid) != null) {
             Quest quest = plugin.getQuestManager().getQuestById(questid);
-            QuestProgress questProgress = new QuestProgress(quest.getId(), false, false, 0, playerUUID, false, false);
+            QuestProgress questProgress = new QuestProgress(plugin, quest.getId(), false, false, 0, playerUUID, false, false);
             for (Task task : quest.getTasks()) {
-                TaskProgress taskProgress = new TaskProgress(task.getId(), null, playerUUID, false, false);
+                TaskProgress taskProgress = new TaskProgress(questProgress, task.getId(), null, playerUUID, false, false);
                 questProgress.addTaskProgress(taskProgress);
             }
 
@@ -403,13 +414,8 @@ public class QuestProgressFile {
         }
 
         YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
-        if (fullWrite) {
-            data.set("quest-progress", null);
-        }
+        data.set("quest-progress", null);
         for (QuestProgress questProgress : questProgress.values()) {
-            if (!questProgress.isWorthSaving() && !fullWrite) {
-                continue;
-            }
             data.set("quest-progress." + questProgress.getQuestId() + ".started", questProgress.isStarted());
             data.set("quest-progress." + questProgress.getQuestId() + ".completed", questProgress.isCompleted());
             data.set("quest-progress." + questProgress.getQuestId() + ".completed-before", questProgress.isCompletedBefore());
