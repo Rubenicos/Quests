@@ -61,6 +61,8 @@ public final class PositionTaskType extends TaskType {
             return;
         }
 
+        if (event.getPlayer().hasMetadata("NPC")) return;
+
         Player player = event.getPlayer();
 
         QPlayer qPlayer = QuestsAPI.getPlayerManager().getPlayer(player.getUniqueId(), true);

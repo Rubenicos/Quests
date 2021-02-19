@@ -86,6 +86,8 @@ public final class InventoryTaskType extends TaskType {
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onItemPickup(PlayerPickupItemEvent event) {
+        if (event.getPlayer().hasMetadata("NPC")) return;
+
         Bukkit.getScheduler().runTaskLater(Quests.get(), () -> this.checkInventory(event.getPlayer()), 1L);
     }
 
@@ -146,6 +148,8 @@ public final class InventoryTaskType extends TaskType {
                             && (Boolean) task.getConfigValue("update-progress")) {
                         int inInv = getAmount(player, is, amount);
                         if (taskProgress.getProgress() != null && (int) taskProgress.getProgress() != inInv) {
+                            taskProgress.setProgress(inInv);
+                        } else if (taskProgress.getProgress() == null) {
                             taskProgress.setProgress(inInv);
                         }
                     }

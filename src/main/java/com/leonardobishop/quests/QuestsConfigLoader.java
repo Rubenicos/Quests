@@ -50,7 +50,9 @@ public class QuestsConfigLoader {
             plugin.setBrokenConfig(true);
         }
 
+
         if (!plugin.isBrokenConfig()) {
+            HashMap<String, Map<String, Object>> globalTaskConfig = new HashMap<>();
             for (String id : plugin.getConfig().getConfigurationSection("categories").getKeys(false)) {
                 ItemStack displayItem = plugin.getItemStack("categories." + id + ".display", plugin.getConfig());
                 boolean permissionRequired = plugin.getConfig().getBoolean("categories." + id + ".permission-required", false);
@@ -61,6 +63,16 @@ public class QuestsConfigLoader {
             plugin.getQuestsLogger().setServerLoggingLevel(QuestsLogger.LoggingLevel.fromNumber(plugin.getConfig().getInt("options.verbose-logging-level", 2)));
 
             HashMap<String, Quest> pathToQuest = new HashMap<>();
+
+            if (plugin.getConfig().isConfigurationSection("global-task-configuration.types")) {
+                for (String type : plugin.getConfig().getConfigurationSection("global-task-configuration.types").getKeys(false)) {
+                    HashMap<String, Object> configValues = new HashMap<>();
+                    for (String key : plugin.getConfig().getConfigurationSection("global-task-configuration.types." + type).getKeys(false)) {
+                        configValues.put(key, plugin.getConfig().get("global-task-configuration.types." + type + "." + key));
+                    }
+                    globalTaskConfig.putIfAbsent(type, configValues);
+                }
+            }
 
             FileVisitor<Path> fileVisitor = new SimpleFileVisitor<Path>() {
                 final URI questsRoot = Paths.get(plugin.getDataFolder() + File.separator + "quests").toUri();
@@ -137,6 +149,7 @@ public class QuestsConfigLoader {
                     for (ConfigProblem problem : configProblems) {
                         if (problem.getType() == ConfigProblemType.ERROR) {
                             error = true;
+                            break;
                         }
                     }
 
@@ -153,14 +166,15 @@ public class QuestsConfigLoader {
                     int cooldownTime = config.getInt("options.cooldown.time", 10);
                     int sortOrder = config.getInt("options.sort-order", 1);
                     String category = config.getString("options.category");
+                    Map<String, String> placeholders = new HashMap<>();
 
                     if (category == null) category = "";
 
                     Quest quest;
                     if (category.equals("")) {
-                        quest = new Quest(id, displayItem, rewards, requirements, repeatable, cooldown, cooldownTime, permissionRequired, rewardString, startString, sortOrder);
+                        quest = new Quest(id, displayItem, rewards, requirements, repeatable, cooldown, cooldownTime, permissionRequired, rewardString, startString, placeholders, sortOrder);
                     } else {
-                        quest = new Quest(id, displayItem, rewards, requirements, repeatable, cooldown, cooldownTime, permissionRequired, rewardString, startString, category, sortOrder);
+                        quest = new Quest(id, displayItem, rewards, requirements, repeatable, cooldown, cooldownTime, permissionRequired, rewardString, startString, placeholders, category, sortOrder);
                         Category c = plugin.getQuestManager().getCategoryById(category);
                         if (c != null) {
                             c.registerQuestId(id);
@@ -179,44 +193,30 @@ public class QuestsConfigLoader {
                             task.addConfigValue(key, config.get(taskRoot + "." + key));
                         }
 
+                        if (globalTaskConfig.containsKey(taskType)) {
+                            for (Map.Entry<String, Object> entry : globalTaskConfig.get(taskType).entrySet()) {
+                                if (Options.GLOBAL_TASK_CONFIGURATION_OVERRIDE.getBooleanValue() && task.getConfigValue(entry.getKey()) != null) continue;
+                                task.addConfigValue(entry.getKey(), entry.getValue());
+                            }
+                        }
+
                         quest.registerTask(task);
                     }
 
-                    Pattern pattern = Pattern.compile("\\{([^}]+)}");
 
                     for (String line : displayItem.getLoreNormal()) {
-                        Matcher matcher = pattern.matcher(line);
-                        while (matcher.find()) {
-                            String[] parts = matcher.group(1).split(":");
-                            boolean match = false;
-                            for (Task t : quest.getTasks()) {
-                                if (t.getId().equals(parts[0])) {
-                                    match = true;
-                                    break;
-                                }
-                            }
-                            if (!match)
-                                configProblems.add(new ConfigProblem(ConfigProblemType.WARNING,
-                                        ConfigProblemDescriptions.UNKNOWN_TASK_REFERENCE.getDescription(parts[0]), "display.lore-normal"));
-                        }
+                        findInvalidTaskReferences(quest, line, configProblems, "display.lore-normal");
                     }
                     for (String line : displayItem.getLoreStarted()) {
-                        Matcher matcher = pattern.matcher(line);
-                        while (matcher.find()) {
-                            String[] parts = matcher.group(1).split(":");
-                            boolean match = false;
-                            for (Task t : quest.getTasks()) {
-                                if (t.getId().equals(parts[0])) {
-                                    match = true;
-                                    break;
-                                }
-                            }
-                            if (!match)
-                                configProblems.add(new ConfigProblem(ConfigProblemType.WARNING,
-                                        ConfigProblemDescriptions.UNKNOWN_TASK_REFERENCE.getDescription(parts[0]), "display.lore-started"));
-                        }
+                        findInvalidTaskReferences(quest, line, configProblems, "display.lore-started");
                     }
 
+                    if (config.isConfigurationSection("placeholders")) {
+                        for (String p : config.getConfigurationSection("placeholders").getKeys(false)) {
+                            placeholders.put(p, config.getString("placeholders." + p));
+                            findInvalidTaskReferences(quest, config.getString("placeholders." + p), configProblems, "placeholders." + p);
+                        }
+                    }
                     pathToQuest.put(relativeLocation.getPath(), quest);
                     if (!configProblems.isEmpty()) {
                         filesWithProblems.put(relativeLocation.getPath(), configProblems);
@@ -279,30 +279,48 @@ public class QuestsConfigLoader {
         return problemsCount;
     }
 
+    private void findInvalidTaskReferences(Quest quest, String s, List<ConfigProblem> configProblems, String location) {
+        Pattern pattern = Pattern.compile("\\{([^}]+)}");
+
+        Matcher matcher = pattern.matcher(s);
+        while (matcher.find()) {
+            String[] parts = matcher.group(1).split(":");
+            boolean match = false;
+            for (Task t : quest.getTasks()) {
+                if (t.getId().equals(parts[0])) {
+                    match = true;
+                    break;
+                }
+            }
+            if (!match)
+                configProblems.add(new ConfigProblem(ConfigProblemType.WARNING,
+                        ConfigProblemDescriptions.UNKNOWN_TASK_REFERENCE.getDescription(parts[0]), location));
+        }
+    }
+
     private QItemStack getQItemStack(String path, FileConfiguration config) {
         String cName = config.getString(path + ".name", path + ".name");
         List<String> cLoreNormal = config.getStringList(path + ".lore-normal");
         List<String> cLoreStarted = config.getStringList(path + ".lore-started");
 
+        List<String> loreNormal = translateColoursInList(cLoreNormal);
+        List<String> loreStarted = translateColoursInList(cLoreStarted);
+
         String name;
-        List<String> loreNormal = new ArrayList<>();
-        if (cLoreNormal != null) {
-            for (String s : cLoreNormal) {
-                loreNormal.add(ChatColor.translateAlternateColorCodes('&', s));
-            }
-        }
-        List<String> loreStarted = new ArrayList<>();
-        if (cLoreStarted != null) {
-            for (String s : cLoreStarted) {
-                loreStarted.add(ChatColor.translateAlternateColorCodes('&', s));
-            }
-        }
         name = ChatColor.translateAlternateColorCodes('&', cName);
 
         ItemStack is = plugin.getItemStack(path, config,
                 ItemGetter.Filter.DISPLAY_NAME, ItemGetter.Filter.LORE, ItemGetter.Filter.ENCHANTMENTS, ItemGetter.Filter.ITEM_FLAGS);
 
         return new QItemStack(plugin, name, loreNormal, loreStarted, is);
+    }
+
+    private List<String> translateColoursInList(List<String> list) {
+        List<String> coloured = new ArrayList<>();
+        for (String s : list) {
+            coloured.add(ChatColor.translateAlternateColorCodes('&', s));
+        }
+        return coloured;
     }
 
     public enum ConfigProblemDescriptions {

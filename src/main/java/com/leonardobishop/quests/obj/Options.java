@@ -22,11 +22,20 @@ public enum Options {
     GUITITLE_DAILY_QUESTS("options.guinames.daily-quests"),
     GUITITLE_QUEST_CANCEL("options.guinames.quest-cancel"),
     ALLOW_QUEST_CANCEL("options.allow-quest-cancel"),
+    ALLOW_QUEST_TRACK("options.allow-quest-track"),
+    QUEST_AUTOSAVE_ASYNC("options.performance-tweaking.quests-autosave-async"),
     SOFT_CLEAN_QUESTSPROGRESSFILE_ON_JOIN("options.soft-clean-questsprogressfile-on-join"),
     PUSH_SOFT_CLEAN_TO_DISK("options.tab-completion.push-soft-clean-to-disk"),
     TAB_COMPLETE_ENABLED("options.tab-completion.enabled"),
     ERROR_CHECKING_OVERRIDE("options.error-checking.override-errors"),
-    QUEST_AUTOSTART("options.quest-autostart");
+    QUEST_AUTOSTART("options.quest-autostart"),
+    QUEST_AUTOTRACK("options.quest-autotrack"),
+    GLOBAL_TASK_CONFIGURATION_OVERRIDE("options.global-task-configuration-override"),
+    GLOBAL_QUEST_DISPLAY_CONFIGURATION_OVERRIDE("options.global-quest-display-configuration-override"),
+    GLOBAL_QUEST_DISPLAY_LORE_APPEND_NORMAL("global-quest-display.lore.append-normal"),
+    GLOBAL_QUEST_DISPLAY_LORE_APPEND_NOT_STARTED("global-quest-display.lore.append-not-started"),
+    GLOBAL_QUEST_DISPLAY_LORE_APPEND_STARTED("global-quest-display.lore.append-started"),
+    GLOBAL_QUEST_DISPLAY_LORE_APPEND_TRACKED("global-quest-display.lore.append-tracked");
 
     private static final Map<String, Boolean> cachedBooleans = new HashMap<>();
 
@@ -75,6 +84,8 @@ public enum Options {
     }
 
     public static List<String> color(List<String> s) {
+        if (s == null || s.size() == 0) return s;
+
         List<String> colored = new ArrayList<>();
         for (String line : s) {
             colored.add(ChatColor.translateAlternateColorCodes('&', line));

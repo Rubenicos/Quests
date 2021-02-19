@@ -24,6 +24,10 @@ public class QItemStack {
     private String name;
     private List<String> loreNormal;
     private List<String> loreStarted;
+    private final List<String> globalLoreAppendNormal;
+    private final List<String> globalLoreAppendNotStarted;
+    private final List<String> globalLoreAppendStarted;
+    private final List<String> globalLoreAppendTracked;
     private ItemStack startingItemStack;
 
     public QItemStack(Quests plugin, String name, List<String> loreNormal, List<String> loreStarted, ItemStack startingItemStack) {
@@ -32,6 +36,11 @@ public class QItemStack {
         this.loreNormal = loreNormal;
         this.loreStarted = loreStarted;
         this.startingItemStack = startingItemStack;
+
+        this.globalLoreAppendNormal = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_NORMAL.getStringListValue());
+        this.globalLoreAppendNotStarted = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_NOT_STARTED.getStringListValue());
+        this.globalLoreAppendStarted = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_STARTED.getStringListValue());
+        this.globalLoreAppendTracked = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_TRACKED.getStringListValue());
     }
 
     public String getName() {
@@ -72,11 +81,32 @@ public class QItemStack {
         ItemMeta ism = is.getItemMeta();
         ism.setDisplayName(name);
         List<String> formattedLore = new ArrayList<>();
-        List<String> tempLore = new ArrayList<>(loreNormal);
+        List<String> tempLore = new ArrayList<>();
+
+        if (Options.GLOBAL_QUEST_DISPLAY_CONFIGURATION_OVERRIDE.getBooleanValue() && !globalLoreAppendNormal.isEmpty()) {
+            tempLore.addAll(globalLoreAppendNormal);
+        } else {
+            tempLore.addAll(loreNormal);
+            tempLore.addAll(globalLoreAppendNormal);
+        }
 
         Player player = Bukkit.getPlayer(questProgressFile.getPlayerUUID());
         if (questProgressFile.hasStartedQuest(quest)) {
-            tempLore.addAll(loreStarted);
+            boolean tracked = quest.getId().equals(questProgressFile.getPlayerPreferences().getTrackedQuestId());
+            if (Options.GLOBAL_QUEST_DISPLAY_CONFIGURATION_OVERRIDE.getBooleanValue() && !globalLoreAppendStarted.isEmpty()) {
+                if (tracked) {
+                    tempLore.addAll(globalLoreAppendTracked);
+                } else {
+                    tempLore.addAll(globalLoreAppendStarted);
+                }
+            } else {
+                tempLore.addAll(loreStarted);
+                if (tracked) {
+                    tempLore.addAll(globalLoreAppendTracked);
+                } else {
+                    tempLore.addAll(globalLoreAppendStarted);
+                }
+            }
             ism.addEnchant(Enchantment.ARROW_INFINITE, 1, true);
             try {
                 ism.addItemFlags(ItemFlag.HIDE_ENCHANTS);
@@ -84,29 +114,15 @@ public class QItemStack {
             } catch (Exception ignored) {
 
             }
+        } else {
+            tempLore.addAll(globalLoreAppendNotStarted);
         }
         if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
             ism.setDisplayName(plugin.getPlaceholderAPIHook().replacePlaceholders(player, ism.getDisplayName()));
         }
         if (questProgress != null) {
             for (String s : tempLore) {
-                Matcher m = Pattern.compile("\\{([^}]+)}").matcher(s);
-                while (m.find()) {
-                    String[] parts = m.group(1).split(":");
-                    if (parts.length > 1) {
-                        if (questProgress.getTaskProgress(parts[0]) == null) {
-                            continue;
-                        }
-                        if (parts[1].equals("progress")) {
-                            String str = String.valueOf(questProgress.getTaskProgress(parts[0]).getProgress());
-                            s = s.replace("{" + m.group(1) + "}", (str.equals("null") ? String.valueOf(0) : str));
-                        }
-                        if (parts[1].equals("complete")) {
-                            String str = String.valueOf(questProgress.getTaskProgress(parts[0]).isCompleted());
-                            s = s.replace("{" + m.group(1) + "}", str);
-                        }
-                    }
-                }
+                s = processPlaceholders(s, questProgress);
                 if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
                     s = plugin.getPlaceholderAPIHook().replacePlaceholders(player, s);
                 }
@@ -116,5 +132,26 @@ public class QItemStack {
         ism.setLore(formattedLore);
         is.setItemMeta(ism);
         return is;
+    }
+
+    public static String processPlaceholders(String s, QuestProgress questProgress) {
+        Matcher m = Pattern.compile("\\{([^}]+)}").matcher(s);
+        while (m.find()) {
+            String[] parts = m.group(1).split(":");
+            if (parts.length > 1) {
+                if (questProgress.getTaskProgress(parts[0]) == null) {
+                    continue;
+                }
+                if (parts[1].equals("progress")) {
+                    String str = String.valueOf(questProgress.getTaskProgress(parts[0]).getProgress());
+                    s = s.replace("{" + m.group(1) + "}", (str.equals("null") ? String.valueOf(0) : str));
+                }
+                if (parts[1].equals("complete")) {
+                    String str = String.valueOf(questProgress.getTaskProgress(parts[0]).isCompleted());
+                    s = s.replace("{" + m.group(1) + "}", str);
+                }
+            }
+        }
+        return s;
     }
 }

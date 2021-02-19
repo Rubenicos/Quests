@@ -137,8 +137,10 @@ options:
   quest-started-limit: 2
   # Hide locked quests, quests on cooldown and completed (but not repeatable) quests
   gui-hide-locked: false
-  # Allow players to cancel a quest
+  # Allow players to cancel a quest (you may want to remove the cancel instructions in the global item lore)
   allow-quest-cancel: true
+  # Allow players to track a quest (you may want to remove the tracking instructions in the global item lore)
+  allow-quest-track: true
   # Titles for the GUIs
   guinames:
     quests-category: "Quests Categories"
@@ -155,6 +157,8 @@ options:
   gui-use-placeholderapi: false
   # Make it so players do not have to start quest themselves
   quest-autostart: false
+  # Automatically track quests on start, and stop tracking on completion
+  quest-autotrack: true
   # How much quests should log, 0 = errors only, 1 = warnings, 2 = info, 3 = debug
   verbose-logging-level: 2
   # Automatically clean player's quest progress files when they join.
@@ -164,16 +168,21 @@ options:
   # The above, but overwriting the file on disk with the cleaned version, so it does not soft clean on every join.
   push-soft-clean-to-disk: false
   performance-tweaking: # The following are measured in server ticks, multiply SECONDS by 20 to get the number of ticks.
-    quest-queue-executor-interval: 1    # how frequently Quests should execute the next check in the completion queue (def=1 - 0.05s) - increase this value if you are struggling with performance
+    quest-queue-executor-interval: 1      # how frequently Quests should execute the next check in the completion queue (def=1 - 0.05s) - increase this value if you are struggling with performance
     quest-autosave-interval: 12000        # how frequently online players data will be autosaved (def=12000 - 10 minutes)
+    quests-autosave-async: false          # experimental - save asynchronously on autosave
   tab-completion:
     enabled: true
   error-checking:
     # Allow quests to be loaded if they contain errors
     # This may lead to errors in the console!
     override-errors: false
-  # How many time (in seconds) plugin save placeholders
+  # How much time (in seconds) that plugin will cache placeholders
   placeholder-cache-time: 10
+  # Whether or not the global task configuration will override per-task configuration settings
+  global-task-configuration-override: false
+  # Whether or not the global display configuration will override per-quest display settins
+  global-quest-display-configuration-override: false
 
 # This switches up the entire quest system.
 # By enabling daily-quests, players will no longer be presented with the standard Quest GUI.
@@ -187,6 +196,37 @@ options:
 # Quests BETA: this feature is a work in progress, it does not work yet!
 daily-quests:
   enabled: false # <----- NOT YET IMPLEMENTED (THIS WILL NOT DO ANYTHING)
+
+# The global task configuration will apply to the config of each task of a specified type in each quest.
+# In the example below, every task with a type of "inventory" will have the config option "update-progress"
+# set to true. This is useful if you do not want to go through each quest if you want to update the configuration
+# for every task of a specific type.
+#
+# You must uncomment all below lines for the example to have any effect
+# vvvvvvvvvvvvvvvvvvvvvvvvv
+#global-task-configuration:
+#  types:
+#    inventory:
+#      update-progress: true
+
+global-quest-display:
+  lore:
+#    append-normal:
+#      - "..."
+    append-not-started:
+      - ""
+      - "&eLeft Click &7to start this quest."
+    append-started:
+      - ""
+      - "&aYou have started this quest."
+      - "&eMiddle Click &7to track this quest."
+      - "&eRight Click &7to cancel this quest."
+    append-tracked:
+      - ""
+      - "&aYou are &etracking &athis quest."
+      - "&eMiddle Click &7to stop tracking this quest."
+      - "&eRight Click &7to cancel this quest."
+
 
 # Configure titles
 titles:
@@ -203,6 +243,8 @@ messages:
   quest-start: "&7Quest &c{quest} &7started!"
   quest-complete: "&7Quest &c{quest} &7completed!"
   quest-cancel: "&7Quest &c{quest} &7cancelled!"
+  quest-track: "&7Tracking quest &c{quest}&7."
+  quest-track-stop: "&7No longer tracking quest &c{quest}&7."
   quest-start-limit: "&7Players are limited to &c{limit} &7started quests at a time."
   quest-start-disabled: "&7You cannot repeat this quest."
   quest-start-locked: "&7You have not unlocked this quest yet."
@@ -215,6 +257,7 @@ messages:
   quest-updater: "&cQuests > &7A new version &c{newver} &7was found on Spigot (your version: &c{oldver}&7). Please update me! <3 - Link: {link}"
   command-sub-doesntexist: "&7The specified subcommand '&c{sub}' &7does not exist."
   command-quest-start-doesntexist: "&7The specified quest '&c{quest}&7' does not exist."
+  command-quest-general-doesntexist: "&7The specified quest '&c{quest}&7' does not exist."
   command-category-open-disabled: "&7Categories are disabled."
   command-category-open-doesntexist: "&7The specified category '&c{category}&7' does not exist."
   command-quest-admin-playernotfound: "&7Player '&c{player}&7' could not be found."
