@@ -1,7 +1,7 @@
 package com.leonardobishop.quests.updater;
 
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.obj.Messages;
+import com.leonardobishop.quests.module.QLocale;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,6 +61,6 @@ public class Updater {
     }
 
     public String getMessage() {
-        return Messages.QUEST_UPDATER.getMessage().replace("{newver}", returnedVersion).replace("{oldver}", installedVersion).replace("{link}", getLink());
+        return QLocale.getString("Quest.Updater", returnedVersion, installedVersion, getLink());
     }
 }

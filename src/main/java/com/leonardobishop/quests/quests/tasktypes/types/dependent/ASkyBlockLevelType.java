@@ -1,6 +1,5 @@
 package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -12,6 +11,7 @@ import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
 import com.wasteofplastic.askyblock.events.IslandPostLevelEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
@@ -29,8 +29,8 @@ public final class ASkyBlockLevelType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         if (TaskUtils.configValidateExists(root + ".level", config.get("level"), problems, "level", super.getType()))
             TaskUtils.configValidateInt(root + ".level", config.get("level"), problems, false, false, "level");
         return problems;
@@ -39,6 +39,11 @@ public final class ASkyBlockLevelType extends TaskType {
     @Override
     public List<ConfigValue> getCreatorConfigValues() {
         return creatorConfigValues;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return Bukkit.getPluginManager().isPluginEnabled("ASkyBlock");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

@@ -1,7 +1,6 @@
 package com.leonardobishop.quests.quests.tasktypes.types;
 
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -32,8 +31,8 @@ public final class PlaytimeTaskType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         if (TaskUtils.configValidateExists(root + ".minutes", config.get("minutes"), problems, "minutes", super.getType()))
             TaskUtils.configValidateInt(root + ".minutes", config.get("minutes"), problems, false, true, "minutes");
         return problems;

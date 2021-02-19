@@ -1,7 +1,6 @@
 package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -13,7 +12,6 @@ import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.objecthunter.exp4j.operator.Operator;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -36,8 +34,8 @@ public final class PlaceholderAPIEvaluateTaskType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         TaskUtils.configValidateExists(root + ".placeholder", config.get("placeholder"), problems, "placeholder", super.getType());
         boolean evalExists = TaskUtils.configValidateExists(root + ".evaluates", config.get("evaluates"), problems, "evaluates", super.getType());
 
@@ -47,20 +45,23 @@ public final class PlaceholderAPIEvaluateTaskType extends TaskType {
             try {
                 operator = Operator.valueOf(operatorStr);
             } catch (IllegalArgumentException ex) {
-                problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.WARNING,
-                        "Operator '" + operatorStr + "' does not exist.", root + ".operator"));
+                problems.add("Operator '" + operatorStr + "' does not exist, check path " + root + ".operator");
             }
             if (operator != null && evalExists) {
                 String evalStr = String.valueOf(config.get("evaluates"));
                 try {
                     Double.parseDouble(evalStr);
                 } catch (IllegalArgumentException ex) {
-                    problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.WARNING,
-                            "Numeric operator specified, but placeholder evaluation '" + evalStr + "' is not numeric.", root + ".evaluates"));
+                    problems.add("Numeric operator specified, but placeholder evaluation '" + evalStr + "' is not numeric, check path " + root + ".evaluates");
                 }
             }
         }
         return problems;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
     }
 
     @Override

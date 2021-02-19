@@ -1,6 +1,5 @@
 package com.leonardobishop.quests.quests.tasktypes.types;
 
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -33,8 +32,8 @@ public final class CommandTaskType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         TaskUtils.configValidateExists(root + ".command", config.get("command"), problems, "command", super.getType());
         TaskUtils.configValidateBoolean(root + ".ignore-case", config.get("ignore-case"), problems, true, "ignore-case", super.getType());
         return problems;

@@ -1,6 +1,5 @@
 package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -12,6 +11,7 @@ import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,8 +32,8 @@ public final class MythicMobsKillingType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         TaskUtils.configValidateExists(root + ".name", config.get("name"), problems, "name", super.getType());
         if (TaskUtils.configValidateExists(root + ".amount", config.get("amount"), problems, "amount", super.getType()))
             TaskUtils.configValidateInt(root + ".amount", config.get("amount"), problems, false, true, "amount");
@@ -43,6 +43,11 @@ public final class MythicMobsKillingType extends TaskType {
     @Override
     public List<ConfigValue> getCreatorConfigValues() {
         return creatorConfigValues;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return Bukkit.getPluginManager().isPluginEnabled("MythicMobs");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

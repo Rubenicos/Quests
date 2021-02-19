@@ -38,4 +38,8 @@ public class Task {
         configValues.put(key, value);
     }
 
+    public void addConfigValues(HashMap<String, Object> values) {
+        configValues.putAll(values);
+    }
+
 }

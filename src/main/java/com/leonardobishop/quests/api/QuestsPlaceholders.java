@@ -2,7 +2,7 @@ package com.leonardobishop.quests.api;
 
 import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.api.enums.QuestStartResult;
-import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.obj.misc.QItemStack;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgressFile;
@@ -209,7 +209,7 @@ public class QuestsPlaceholders extends PlaceholderExpansion implements Cacheabl
                                     if (placeholder == null) {
                                         return t[1] + " is not a valid placeholder within quest " + quest.getId();
                                     }
-                                    placeholder = QItemStack.processPlaceholders(Options.color(placeholder), qPlayer.getQuestProgressFile().getQuestProgress(quest));
+                                    placeholder = QItemStack.processPlaceholders(QLocale.color(placeholder), qPlayer.getQuestProgressFile().getQuestProgress(quest));
                                     return placeholder;
                                 } else {
                                     return args[0] + "_" + args[1] + " is not a valid placeholder";
@@ -219,7 +219,7 @@ public class QuestsPlaceholders extends PlaceholderExpansion implements Cacheabl
                     break;
                 case "category":
                 case "c":
-                    if (!Options.CATEGORIES_ENABLED.getBooleanValue()) return "Categories Disabled";
+                    if (!plugin.getSettings().getBoolean("options.categories-enabled")) return "Categories Disabled";
                     if (key.length == 1) return "Please specify category name";
 
                     final Category category = plugin.getQuestManager().getCategoryById(key[1]);
@@ -267,7 +267,7 @@ public class QuestsPlaceholders extends PlaceholderExpansion implements Cacheabl
             final Map<String, String> map = new HashMap<>();
             map.put(params, result);
             cache.put(player, map);
-            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> cache.get(player).remove(params), plugin.getConfig().getInt("options.placeholder-cache-time", 10) * 20);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> cache.get(player).remove(params), plugin.getSettings().getInt("options.placeholder-cache-time") * 20);
         }
         return result;
     }

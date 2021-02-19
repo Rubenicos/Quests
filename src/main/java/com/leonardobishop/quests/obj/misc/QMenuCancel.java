@@ -1,7 +1,8 @@
 package com.leonardobishop.quests.obj.misc;
 
+import com.leonardobishop.quests.Quests;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.obj.Items;
-import com.leonardobishop.quests.obj.Options;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.quests.Quest;
 import org.bukkit.Bukkit;
@@ -9,10 +10,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class QMenuCancel implements QMenu {
 
@@ -46,7 +45,7 @@ public class QMenuCancel implements QMenu {
     }
 
     public Inventory toInventory() {
-        String title = Options.color(Options.GUITITLE_QUEST_CANCEL.getStringValue());
+        String title = QLocale.color(Quests.get().getSettings().getString("options.guinames.quest-cancel"));
 
         ItemStack yes = Items.QUEST_CANCEL_YES.getItem();
         ItemStack no = Items.QUEST_CANCEL_NO.getItem();

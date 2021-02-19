@@ -2,8 +2,7 @@ package com.leonardobishop.quests.events;
 
 import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.api.enums.QuestStartResult;
-import com.leonardobishop.quests.obj.Messages;
-import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.obj.misc.QMenu;
 import com.leonardobishop.quests.obj.misc.QMenuCancel;
 import com.leonardobishop.quests.obj.misc.QMenuCategory;
@@ -71,7 +70,7 @@ public class EventInventory implements Listener {
                     event.getWhoClicked().openInventory(qMenuQuest.toInventory(qMenuQuest.getCurrentPage() + 1));
 
                     // return to QMenuCategory (category listing)
-                } else if (Options.CATEGORIES_ENABLED.getBooleanValue() && qMenuQuest.getBackButtonLocation() == event.getSlot()) {
+                } else if (plugin.getSettings().getBoolean("options.categories-enabled") && qMenuQuest.getBackButtonLocation() == event.getSlot()) {
                     QMenuCategory qMenuCategory = qMenuQuest.getSuperMenu();
                     buffer.add(event.getWhoClicked().getUniqueId());
                     event.getWhoClicked().openInventory(qMenuCategory.toInventory(1));
@@ -81,31 +80,32 @@ public class EventInventory implements Listener {
                     // map which maps quests to slots so you do not have to compare the item stack
                 } else if (event.getSlot() < qMenuQuest.getPageSize() && qMenuQuest.getSlotsToMenu().containsKey(event.getSlot() + (((qMenuQuest
                         .getCurrentPage()) - 1) * qMenuQuest.getPageSize()))) {
+                    if (plugin.getSettings().getBoolean("options.quest-autostart")) return;
 
                     String questid = qMenuQuest.getSlotsToMenu().get(event.getSlot() + (((qMenuQuest.getCurrentPage()) - 1) * qMenuQuest.getPageSize()));
                     Quest quest = plugin.getQuestManager().getQuestById(questid);
                     if (event.getClick() == ClickType.LEFT) {
-                        if (Options.QUEST_AUTOSTART.getBooleanValue()) return;
+                        if (plugin.getSettings().getBoolean("options.quest-autostart")) return;
                         if (qMenuQuest.getOwner().getQuestProgressFile().startQuest(quest) == QuestStartResult.QUEST_SUCCESS) {
                             event.getWhoClicked().closeInventory(); //TODO Option to keep the menu open
                         }
-                    } else if (event.getClick() == ClickType.MIDDLE && Options.ALLOW_QUEST_TRACK.getBooleanValue()) {
+                    } else if (event.getClick() == ClickType.MIDDLE && plugin.getSettings().getBoolean("options.allow-quest-track")) {
                         if (qMenuQuest.getOwner().getQuestProgressFile().hasStartedQuest(quest)) {
                             Player player = Bukkit.getPlayer(qMenuQuest.getOwner().getUuid());
                             String tracked = qMenuQuest.getOwner().getQuestProgressFile().getPlayerPreferences().getTrackedQuestId();
 
                             if (questid.equals(tracked)) {
-                                player.sendMessage(Messages.QUEST_TRACK_STOP.getMessage().replace("{quest}", quest.getDisplayNameStripped()));
+                                QLocale.sendTo(player, "Quest.Track.Cancel", quest.getDisplayNameStripped());
                                 qMenuQuest.getOwner().getQuestProgressFile().trackQuest(null);
                             } else {
-                                player.sendMessage(Messages.QUEST_TRACK.getMessage().replace("{quest}", quest.getDisplayNameStripped()));
+                                QLocale.sendTo(player, "Quest.Track.Tracking", quest.getDisplayNameStripped());
                                 qMenuQuest.getOwner().getQuestProgressFile().trackQuest(quest);
                             }
                             event.getWhoClicked().closeInventory();
                         }
-                    } else if (event.getClick() == ClickType.RIGHT && Options.ALLOW_QUEST_CANCEL.getBooleanValue()
+                    } else if (event.getClick() == ClickType.RIGHT && plugin.getSettings().getBoolean("options.allow-quest-cancel")
                             && qMenuQuest.getOwner().getQuestProgressFile().hasStartedQuest(quest)) {
-                        if (Options.QUEST_AUTOSTART.getBooleanValue()) return;
+                        if (plugin.getSettings().getBoolean("options.quest-autostart")) return;
                         QMenuCancel qMenuCancel = new QMenuCancel(qMenuQuest.getOwner(), qMenuQuest, quest);
                         buffer.add(event.getWhoClicked().getUniqueId());
                         event.getWhoClicked().openInventory(qMenuCancel.toInventory());
@@ -122,7 +122,7 @@ public class EventInventory implements Listener {
                     buffer.add(event.getWhoClicked().getUniqueId());
                     if (qMenuCategory.getOwner().openCategory(plugin.getQuestManager().getCategoryById(qMenuQuest.getCategoryName()), qMenuQuest) != 0) {
                         buffer.remove(event.getWhoClicked().getUniqueId());
-                        event.getWhoClicked().sendMessage(Messages.QUEST_CATEGORY_PERMISSION.getMessage());
+                        QLocale.sendTo(event.getWhoClicked(), "Quest.Category.Permission");
                     }
                 }
 

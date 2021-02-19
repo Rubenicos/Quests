@@ -2,7 +2,6 @@ package com.leonardobishop.quests.player;
 
 import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.events.EventInventory;
-import com.leonardobishop.quests.obj.Options;
 import com.leonardobishop.quests.obj.misc.QMenuCategory;
 import com.leonardobishop.quests.obj.misc.QMenuQuest;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgressFile;
@@ -86,7 +85,7 @@ public class QPlayer {
             return;
         }
 
-        if (Options.CATEGORIES_ENABLED.getBooleanValue()) {
+        if (plugin.getSettings().getBoolean("options.categories-enabled")) {
             QMenuCategory qMenuCategory = new QMenuCategory(plugin, plugin.getPlayerManager().getPlayer(player.getUniqueId()));
             List<QMenuQuest> questMenus = new ArrayList<>();
             for (Category category : plugin.getQuestManager().getCategories()) {

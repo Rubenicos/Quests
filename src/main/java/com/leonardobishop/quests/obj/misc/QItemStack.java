@@ -1,11 +1,14 @@
 package com.leonardobishop.quests.obj.misc;
 
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.hooks.itemgetter.ItemGetter;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgressFile;
 import com.leonardobishop.quests.quests.Quest;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -19,7 +22,7 @@ import java.util.regex.Pattern;
 
 public class QItemStack {
 
-    private final Quests plugin;
+    private final Quests pl = Quests.get();
 
     private String name;
     private List<String> loreNormal;
@@ -30,17 +33,16 @@ public class QItemStack {
     private final List<String> globalLoreAppendTracked;
     private ItemStack startingItemStack;
 
-    public QItemStack(Quests plugin, String name, List<String> loreNormal, List<String> loreStarted, ItemStack startingItemStack) {
-        this.plugin = plugin;
+    public QItemStack(String name, List<String> loreNormal, List<String> loreStarted, ItemStack startingItemStack) {
         this.name = name;
         this.loreNormal = loreNormal;
         this.loreStarted = loreStarted;
         this.startingItemStack = startingItemStack;
 
-        this.globalLoreAppendNormal = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_NORMAL.getStringListValue());
-        this.globalLoreAppendNotStarted = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_NOT_STARTED.getStringListValue());
-        this.globalLoreAppendStarted = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_STARTED.getStringListValue());
-        this.globalLoreAppendTracked = Options.color(Options.GLOBAL_QUEST_DISPLAY_LORE_APPEND_TRACKED.getStringListValue());
+        this.globalLoreAppendNormal = QLocale.color(pl.getSettings().getStringList("global-quest-display.lore.append-normal"));
+        this.globalLoreAppendNotStarted = QLocale.color(pl.getSettings().getStringList("global-quest-display.lore.append-not-started"));
+        this.globalLoreAppendStarted = QLocale.color(pl.getSettings().getStringList("global-quest-display.lore.append-started"));
+        this.globalLoreAppendTracked = QLocale.color(pl.getSettings().getStringList("global-quest-display.lore.append-tracked"));
     }
 
     public String getName() {
@@ -75,7 +77,6 @@ public class QItemStack {
         this.startingItemStack = startingItemStack;
     }
 
-    @SuppressWarnings("deprecation")
     public ItemStack toItemStack(Quest quest, QuestProgressFile questProgressFile, QuestProgress questProgress) {
         ItemStack is = new ItemStack(startingItemStack);
         ItemMeta ism = is.getItemMeta();
@@ -83,7 +84,7 @@ public class QItemStack {
         List<String> formattedLore = new ArrayList<>();
         List<String> tempLore = new ArrayList<>();
 
-        if (Options.GLOBAL_QUEST_DISPLAY_CONFIGURATION_OVERRIDE.getBooleanValue() && !globalLoreAppendNormal.isEmpty()) {
+        if (pl.getSettings().getBoolean("options.global-quest-display-configuration-override") && !globalLoreAppendNormal.isEmpty()) {
             tempLore.addAll(globalLoreAppendNormal);
         } else {
             tempLore.addAll(loreNormal);
@@ -93,7 +94,7 @@ public class QItemStack {
         Player player = Bukkit.getPlayer(questProgressFile.getPlayerUUID());
         if (questProgressFile.hasStartedQuest(quest)) {
             boolean tracked = quest.getId().equals(questProgressFile.getPlayerPreferences().getTrackedQuestId());
-            if (Options.GLOBAL_QUEST_DISPLAY_CONFIGURATION_OVERRIDE.getBooleanValue() && !globalLoreAppendStarted.isEmpty()) {
+            if (pl.getSettings().getBoolean("options.global-quest-display-configuration-override") && !globalLoreAppendStarted.isEmpty()) {
                 if (tracked) {
                     tempLore.addAll(globalLoreAppendTracked);
                 } else {
@@ -117,14 +118,14 @@ public class QItemStack {
         } else {
             tempLore.addAll(globalLoreAppendNotStarted);
         }
-        if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
-            ism.setDisplayName(plugin.getPlaceholderAPIHook().replacePlaceholders(player, ism.getDisplayName()));
+        if (QLocale.papi && pl.getSettings().getBoolean("options.gui-use-placeholderapi")) {
+            ism.setDisplayName(QLocale.setPlaceholders(player, ism.getDisplayName(), false));
         }
         if (questProgress != null) {
             for (String s : tempLore) {
                 s = processPlaceholders(s, questProgress);
-                if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
-                    s = plugin.getPlaceholderAPIHook().replacePlaceholders(player, s);
+                if (QLocale.papi && pl.getSettings().getBoolean("options.gui-use-placeholderapi")) {
+                    s = QLocale.setPlaceholders(player, s, false);
                 }
                 formattedLore.add(s);
             }
@@ -153,5 +154,31 @@ public class QItemStack {
             }
         }
         return s;
+    }
+
+    public static QItemStack getQItemStack(String path, FileConfiguration config) {
+        String cName = config.getString(path + ".name", path + ".name");
+        List<String> cLoreNormal = config.getStringList(path + ".lore-normal");
+        List<String> cLoreStarted = config.getStringList(path + ".lore-started");
+
+        String name;
+        List<String> loreNormal = new ArrayList<>();
+        if (cLoreNormal != null) {
+            for (String s : cLoreNormal) {
+                loreNormal.add(ChatColor.translateAlternateColorCodes('&', s));
+            }
+        }
+        List<String> loreStarted = new ArrayList<>();
+        if (cLoreStarted != null) {
+            for (String s : cLoreStarted) {
+                loreStarted.add(ChatColor.translateAlternateColorCodes('&', s));
+            }
+        }
+        name = ChatColor.translateAlternateColorCodes('&', cName);
+
+        ItemStack is = Quests.get().getItemStack(path, config,
+                ItemGetter.Filter.DISPLAY_NAME, ItemGetter.Filter.LORE, ItemGetter.Filter.ENCHANTMENTS, ItemGetter.Filter.ITEM_FLAGS);
+
+        return new QItemStack(name, loreNormal, loreStarted, is);
     }
 }

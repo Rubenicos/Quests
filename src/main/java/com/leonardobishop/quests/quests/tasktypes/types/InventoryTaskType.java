@@ -1,7 +1,6 @@
 package com.leonardobishop.quests.quests.tasktypes.types;
 
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -42,8 +41,8 @@ public final class InventoryTaskType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         if (TaskUtils.configValidateExists(root + ".item", config.get("item"), problems, "item", super.getType())) {
             Object configBlock = config.get("item");
             if (configBlock instanceof ConfigurationSection) {
@@ -52,21 +51,11 @@ public final class InventoryTaskType extends TaskType {
                 if (!section.contains("item")) {
                     itemloc = "type";
                 }
-                if (!section.contains(itemloc)) {
-                    problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.WARNING,
-                            QuestsConfigLoader.ConfigProblemDescriptions.UNKNOWN_MATERIAL.getDescription(""), root + ".item.type"));
-                } else {
-                    String type = String.valueOf(section.get(itemloc));
-                    if (!Quests.get().getItemGetter().isValidMaterial(type)) {
-                        problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.WARNING,
-                                QuestsConfigLoader.ConfigProblemDescriptions.UNKNOWN_MATERIAL.getDescription(type), root + ".item." + itemloc));
-                    }
+                if (TaskUtils.configValidateExists(root + ".item." + itemloc, section.get(itemloc), problems, itemloc, super.getType())) {
+                    TaskUtils.configValidateMaterial(root + ".item." + itemloc, String.valueOf(section.get(itemloc)), problems, itemloc);
                 }
             } else {
-                if (Material.getMaterial(String.valueOf(configBlock)) == null) {
-                    problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.WARNING,
-                            QuestsConfigLoader.ConfigProblemDescriptions.UNKNOWN_MATERIAL.getDescription(String.valueOf(configBlock)), root + ".item.item"));
-                }
+                TaskUtils.configValidateMaterial(root + ".item", String.valueOf(configBlock), problems, "item");
             }
         }
         if (TaskUtils.configValidateExists(root + ".amount", config.get("amount"), problems, "amount", super.getType()))

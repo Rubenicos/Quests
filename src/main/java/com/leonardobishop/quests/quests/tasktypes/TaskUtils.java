@@ -1,6 +1,6 @@
 package com.leonardobishop.quests.quests.tasktypes;
 
-import com.leonardobishop.quests.QuestsConfigLoader;
+import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.quests.Task;
 import org.bukkit.entity.Player;
 
@@ -38,11 +38,10 @@ public class TaskUtils {
         return true;
     }
 
-    public static void configValidateInt(String path, Object object, List<QuestsConfigLoader.ConfigProblem> problems, boolean allowNull, boolean greaterThanZero, String... args) {
+    public static void configValidateInt(String path, Object object, List<String> problems, boolean allowNull, boolean greaterThanZero, String... args) {
         if (object == null) {
             if (!allowNull) {
-                problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.ERROR,
-                        String.format("Expected an integer for '%s', but got null instead", (Object[]) args), path));
+                problems.add(String.format("Expected an integer for \"%s\", but got null instead, check path " + path, (Object[]) args));
             }
             return;
         }
@@ -50,20 +49,17 @@ public class TaskUtils {
         try {
             Integer i = (Integer) object;
             if (greaterThanZero && i <= 0) {
-                problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.ERROR,
-                        String.format("Value for field '%s' must be greater than 0", (Object[]) args), path));
+                problems.add(String.format("Value for field '%s' must be greater than 0, check path " + path, (Object[]) args));
             }
         } catch (ClassCastException ex) {
-            problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.ERROR,
-                    String.format("Expected an integer for '%s', but got '" + object + "' instead", (Object[]) args), path));
+            problems.add(String.format("Expected an integer for \"%s\", but got \"" + object + "\" instead, check path " + path, (Object[]) args));
         }
     }
 
-    public static void configValidateBoolean(String path, Object object, List<QuestsConfigLoader.ConfigProblem> problems, boolean allowNull, String... args) {
+    public static void configValidateBoolean(String path, Object object, List<String> problems, boolean allowNull, String... args) {
         if (object == null) {
             if (!allowNull) {
-                problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.ERROR,
-                        String.format("Expected a boolean for '%s', but got null instead", (Object[]) args), path));
+                problems.add(String.format("Expected a boolean for \"%s\", but got null instead, check path " + path, (Object[]) args));
             }
             return;
         }
@@ -71,15 +67,24 @@ public class TaskUtils {
         try {
             Boolean b = (Boolean) object;
         } catch (ClassCastException ex) {
-            problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.ERROR,
-                    String.format("Expected a boolean for '%s', but got '" + object + "' instead", (Object[]) args), path));
+            problems.add(String.format("Expected a boolean for \"%s\", but got \"" + object + "\" instead, check path " + path, (Object[]) args));
         }
     }
 
-    public static boolean configValidateExists(String path, Object object, List<QuestsConfigLoader.ConfigProblem> problems, String... args) {
+    public static void configValidateMaterial(String path, String material, List<String> problems, String... args) {
+        if (material == null) {
+            problems.add(String.format("Expected a material for \"%s\", but got null instead, check path " + path, (Object[]) args));
+            return;
+        }
+
+        if (!Quests.get().getItemGetter().isValidMaterial(material)) {
+            problems.add("Material" + material + "does not exist, check path " + path);
+        }
+    }
+
+    public static boolean configValidateExists(String path, Object object, List<String> problems, String... args) {
         if (object == null) {
-            problems.add(new QuestsConfigLoader.ConfigProblem(QuestsConfigLoader.ConfigProblemType.ERROR,
-                    String.format(QuestsConfigLoader.ConfigProblemDescriptions.TASK_MISSING_FIELD.getDescription(args), (Object[]) args), path));
+            problems.add(String.format("Required field \"%s\" is missing for task type \"%s\", create the field at path " + path + " to avoid this issue", (Object[]) args));
             return false;
         }
         return true;

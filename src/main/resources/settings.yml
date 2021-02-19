@@ -1,0 +1,40 @@
+# | =================================================== |
+# |      Thank you for downloading and trying out       |
+# |                       Quests                        |
+# |      https://www.spigotmc.org/resources/23696/      |
+# |         https://github.com/LMBishop/Quests/         |
+# |                                                     |
+# |                         =x=                         |
+# |                                                     |
+# |              Trying to add new quests?              |
+# |                                                     |
+# |                 Go to the 'quests'                  |
+# |               subdirectory to edit the              |
+# |                        quests                       |
+# |                                                     |
+# |                 The example quests                  |
+# |              are commented to help you              |
+# |             learn how to use the plugin             |
+# |                                                     |
+# |                         =x=                         |
+# |                                                     |
+# |              Have Discord & need help?              |
+# |       Head to the GitHub page and click on the      |
+# |           Discord link, or create an issue          |
+# | =================================================== |
+
+
+# Locale configuration
+Locale:
+  # Plugin language
+  # Available languages: en_US, es_ES, es_MX
+  # You can make you own language file by creating one in "lang" folder.
+  Language: 'en_US'
+  # If you are running Minecraft 1.11.2 or below you can enable packet sending
+  # to use timings like fadeIn, stay and fadeOut in titles.
+  # This use Java reflection with cache, may be heavy on some low cost servers
+  # with much players, disable in the strange case of bad performance impact.
+  SendPackets: true
+  # If you are running Minecraft 1.16 or above you can use RGB colors with
+  # format &#****** for example &#FFAA00
+  AllowRGB: true

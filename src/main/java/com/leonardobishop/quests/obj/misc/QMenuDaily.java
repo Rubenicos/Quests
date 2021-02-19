@@ -1,17 +1,13 @@
 package com.leonardobishop.quests.obj.misc;
 
-import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.quests.Quest;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class QMenuDaily implements QMenu {
 
@@ -56,7 +52,7 @@ public class QMenuDaily implements QMenu {
     public Inventory toInventory(int page) {
         int pageMin = pageSize * (page - 1);
         int pageMax = pageSize * page;
-        String title = Options.GUITITLE_DAILY_QUESTS.toString();
+        String title = Quests.get().getSettings().getString("options.guinames.daily-quests");
 
  //       Inventory inventory = Bukkit.createInventory(null, 27, title);
 

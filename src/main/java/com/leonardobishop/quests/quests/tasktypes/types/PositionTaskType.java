@@ -1,6 +1,5 @@
 package com.leonardobishop.quests.quests.tasktypes.types;
 
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -37,8 +36,8 @@ public final class PositionTaskType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         TaskUtils.configValidateExists(root + ".world", config.get("world"), problems, "world", super.getType());
         if (TaskUtils.configValidateExists(root + ".x", config.get("x"), problems, "x", super.getType()))
             TaskUtils.configValidateInt(root + ".x", config.get("x"), problems, false, false, "x");

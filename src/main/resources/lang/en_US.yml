@@ -1,0 +1,99 @@
+Message:
+  Time-Format: '{0}h {1}m'
+  Beta-Reminder: '&cQuests > &7Reminder: you are currently using a &cbeta &7version of Quests. Please send bug reports to https://github.com/fatpigsarefat/Quests/issues and check for updates regularly using &c/quests admin update&7!'
+
+
+Quest:
+  Updater: '&cQuests > &7A new version &c{0} &7was found on Spigot (your version: &c{1}&7). Please update me! <3 - Link: {2}'
+  Complete:
+    Success: '&7Quest &c{0} &7completed!'
+  Start:
+    Success: '&7Quest &c{0} &7started!'
+    Fail:
+      Limit: '&7Players are limited to &c{0} &7started quests at a time.'
+      Disabled: '&7You cannot repeat this quest.'
+      Locked: '&7You have not unlocked this quest yet.'
+      Cooldown: '&7You have recently completed this quest. You have to wait &c{0} &7until you are able to restart it.'
+      Started: '&7You have already started this quest.'
+      Permission: '&7You do not have permission to start this quest.'
+  Cancel:
+    Success: '&7Quest &c{0} &7cancelled!'
+    Not-Started: '&7You have not started this quest.'
+  Track:
+    Tracking: '&7Tracking quest &c{0}&7.'
+    Cancel: '&7No longer tracking quest &c{0}&7.'
+  Category:
+    Permission: '&7You do not have permission to view this category.'
+    Quest-Permission: '&7You do not have permission to start this quest since it is in a category you do not have permission to view.'
+
+
+Command:
+  Help:
+    - ''
+  Not-Exist: '&7The specified subcommand "&c{0}" &7does not exist.'
+  Quest:
+    Usage: ''
+    General:
+      Not-Exist: '&7The specified quest "&c{0}&7" does not exist.'
+    Start:
+      Not-Exist: '&7The specified quest "&c{0}&7" does not exist.'
+    Cancel:
+      Not-Exist: ''
+  Category:
+    Usage: ''
+    Open:
+      Disabled: '&7Categories are disabled.'
+      Not-Exist: '&7The specified category "&c{0}&7" does not exist.'
+  Admin:
+    Help:
+      - ''
+    Not-Found: '&7Player "&c{0}&7" could not be found.'
+    LoadData: '&7Quest data for "&c{0}&7" is being loaded.'
+    NoData: '&7No data could be found for player &c{0}&7.'
+    Opengui:
+      Usage: ''
+      Quests:
+        Success: '&7Opened Quest GUI for player &c{0}&7.'
+      Category:
+        Success: '&7Opened category &c{0} &7for player &c{1}&7.'
+        Permission: '&7Category &c{0} &7 could not be opened for player &c{1}&7. They do not have permission to view it.'
+    Types:
+      Not-Exist: '&7Task type "&c{0}&7" does not exist.'
+    ModData:
+      Help:
+        - ''
+      Reset:
+        Success: '&7Successfully reset quest "&c{0}&7" for player &c{player}&7.'
+      Start:
+        Success: '&7Quest &c{0} &7started for player &c{player}&7.'
+        Fail:
+          Locked: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. They have not yet unlocked it.'
+          Cooldown: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. It is still on cooldown for them.'
+          Complete: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. They have already completed it.'
+          Limit: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. They have reached their quest start limit.'
+          Started: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. It is already started.'
+          Permission: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. They do not have permission.'
+          Category-Perm: '&7Quest "&c{0}&7" could not be started for player &c{1}&7. They do not have permission for the category which the quest is in.'
+          Other: '&7Quest "&c{0}&7" could not be started for player &c{1}&7.'
+      Complete:
+        Success: '&7Quest &c{0} &7completed for player &c{player}&7.'
+      FullReset:
+        Success: '&7Data for player &c{0}&7 has been fully reset.'
+      Clean:
+        Success: '&7All quest progress files have been cleaned.'
+        Fail: '&cFailed to clean quest progress files. Please report the error in the console.'
+
+
+Title:
+  Quest-Started:
+    title: "&cQuest Started"
+    subtitle: "&7{0}"
+    fadeIn: 10
+    stay: 100
+    fadeOut: 10
+  Quest-Complete:
+    title: "&cQuest Complete"
+    subtitle: "&7{0}"
+    fadeIn: 10
+    stay: 100
+    fadeOut: 10

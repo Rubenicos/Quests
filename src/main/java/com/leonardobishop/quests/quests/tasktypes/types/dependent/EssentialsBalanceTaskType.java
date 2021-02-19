@@ -1,7 +1,6 @@
 package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 
 import com.earth2me.essentials.Essentials;
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -34,8 +33,8 @@ public class EssentialsBalanceTaskType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         if (TaskUtils.configValidateExists(root + ".amount", config.get("amount"), problems, "amount", super.getType()))
             TaskUtils.configValidateInt(root + ".amount", config.get("amount"), problems, false, false, "amount");
         return problems;
@@ -63,6 +62,11 @@ public class EssentialsBalanceTaskType extends TaskType {
     @Override
     public List<ConfigValue> getCreatorConfigValues() {
         return creatorConfigValues;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return Bukkit.getPluginManager().isPluginEnabled("Essentials");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

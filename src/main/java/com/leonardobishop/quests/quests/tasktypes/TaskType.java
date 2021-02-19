@@ -1,6 +1,5 @@
 package com.leonardobishop.quests.quests.tasktypes;
 
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.quests.Quest;
 import com.leonardobishop.quests.quests.Task;
 import org.bukkit.event.Listener;
@@ -81,6 +80,10 @@ public abstract class TaskType implements Listener {
         return Collections.emptyList();
     }
 
+    public boolean canRegister() {
+        return true;
+    }
+
     /**
      * Called when Quests has finished registering all quests to the task type
      * May be called several times if an operator uses /quests admin reload
@@ -103,7 +106,7 @@ public abstract class TaskType implements Listener {
     /**
      * Called when Quests reloads the configuration - used to detect errors in the configuration of your task type
      */
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
         // not implemented here
         return Collections.emptyList();
     }

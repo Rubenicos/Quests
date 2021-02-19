@@ -70,7 +70,7 @@ public class QuestsLogger {
             return numericVerbosity;
         }
 
-        static LoggingLevel fromNumber(int number) {
+        public static LoggingLevel fromNumber(int number) {
             for (LoggingLevel level : LoggingLevel.values()) {
                 if (level.getNumericVerbosity() == number) {
                     return level;

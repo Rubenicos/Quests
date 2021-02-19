@@ -1,10 +1,9 @@
 package com.leonardobishop.quests.commands;
 
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.enums.QuestStartResult;
-import com.leonardobishop.quests.obj.Messages;
-import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.module.QFiles;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgressFile;
 import com.leonardobishop.quests.quests.Category;
@@ -146,11 +145,11 @@ public class CommandQuests implements TabExecutor {
                             try {
                                 Files.walkFileTree(Paths.get(plugin.getDataFolder() + File.separator + "playerdata"), fileVisitor);
                             } catch (IOException e) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_CLEAN_FAIL.getMessage());
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Clean.Fail");
                                 e.printStackTrace();
                                 return true;
                             }
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_CLEAN_SUCCESS.getMessage());
+                            QLocale.sendTo(sender, "Command.Admin.ModData.Clean.Success");
                             return true;
                         }
                         showAdminHelp(sender, "moddata");
@@ -163,7 +162,7 @@ public class CommandQuests implements TabExecutor {
                             }
                         }
                         if (taskType == null) {
-                            sender.sendMessage(Messages.COMMAND_TASKVIEW_ADMIN_FAIL.getMessage().replace("{task}", args[2]));
+                            QLocale.sendTo(sender, "Command.Admin.Types.Not-Exist", args[2]);
                         } else {
                             sender.sendMessage(ChatColor.RED + "Task type: " + ChatColor.GRAY + taskType.getType());
                             sender.sendMessage(ChatColor.RED + "Author: " + ChatColor.GRAY + taskType.getAuthor());
@@ -173,7 +172,7 @@ public class CommandQuests implements TabExecutor {
                     } else if (args[1].equalsIgnoreCase("info")) {
                         Quest quest = plugin.getQuestManager().getQuestById(args[2]);
                         if (quest == null) {
-                            sender.sendMessage(Messages.COMMAND_QUEST_GENERAL_DOESNTEXIST.getMessage().replace("{quest}", args[2]));
+                            QLocale.sendTo(sender, "Command.Quest.General.Not-Exist", args[2]);
                         } else {
                             sender.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD + "Information for quest '" + quest.getId() + "'");
                             sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE + "Task configurations (" + quest.getTasks().size() + ")");
@@ -183,19 +182,19 @@ public class CommandQuests implements TabExecutor {
                                     sender.sendMessage(ChatColor.DARK_GRAY + " | " + ChatColor.GRAY + config.getKey() + ": " + ChatColor.GRAY + ChatColor.ITALIC + config.getValue());
                                 }
                             }
-                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE +  "Start string");
+                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE + "Start string");
                             for (String s : quest.getStartString()) {
                                 sender.sendMessage(ChatColor.DARK_GRAY + " * " + ChatColor.GRAY + s);
                             }
-                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE +  "Reward string");
+                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE + "Reward string");
                             for (String s : quest.getRewardString()) {
                                 sender.sendMessage(ChatColor.DARK_GRAY + " * " + ChatColor.GRAY + s);
                             }
-                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE +  "Rewards");
+                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE + "Rewards");
                             for (String s : quest.getRewards()) {
                                 sender.sendMessage(ChatColor.DARK_GRAY + " * " + ChatColor.GRAY + s);
                             }
-                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE +  "Quest options");
+                            sender.sendMessage(ChatColor.RED.toString() + ChatColor.UNDERLINE + "Quest options");
                             sender.sendMessage(ChatColor.RED + "Category: " + ChatColor.GRAY + quest.getCategoryId());
                             sender.sendMessage(ChatColor.RED + "Repeatable: " + ChatColor.GRAY + quest.isRepeatable());
                             sender.sendMessage(ChatColor.RED + "Requirements: " + ChatColor.GRAY + String.join(", ", quest.getRequirements()));
@@ -212,11 +211,11 @@ public class CommandQuests implements TabExecutor {
                                 QPlayer qPlayer = plugin.getPlayerManager().getPlayer(player.getUniqueId());
                                 if (qPlayer != null) {
                                     qPlayer.openQuests();
-                                    sender.sendMessage(Messages.COMMAND_QUEST_OPENQUESTS_ADMIN_SUCCESS.getMessage().replace("{player}", player.getName()));
+                                    QLocale.sendTo(sender, "Command.Admin.Opengui.Quests.Success", player.getName());
                                     return true;
                                 }
                             }
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_PLAYERNOTFOUND.getMessage().replace("{player}", args[3]));
+                            QLocale.sendTo(sender, "Command.Admin.Not-Found", args[3]);
                             return true;
                         }
                         showAdminHelp(sender, "opengui");
@@ -231,18 +230,18 @@ public class CommandQuests implements TabExecutor {
                             uuid = ofp.getUniqueId();
                             name = ofp.getName();
                         } else {
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_PLAYERNOTFOUND.getMessage().replace("{player}", args[3]));
+                            QLocale.sendTo(sender, "Command.Admin.Not-Found", args[3]);
                             return true;
                         }
                         if (args[2].equalsIgnoreCase("fullreset")) {
                             QPlayer qPlayer = plugin.getPlayerManager().getPlayer(uuid);
                             if (qPlayer == null) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_LOADDATA.getMessage().replace("{player}", name));
+                                QLocale.sendTo(sender, "Command.Admin.LoadData", name);
                                 plugin.getPlayerManager().loadPlayer(uuid);
                                 qPlayer = plugin.getPlayerManager().getPlayer(uuid); //get again
                             }
                             if (qPlayer == null) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_NODATA.getMessage().replace("{player}", name));
+                                QLocale.sendTo(sender, "Command.Admin.NoData", name);
                                 return true;
                             }
                             QuestProgressFile questProgressFile = qPlayer.getQuestProgressFile();
@@ -251,7 +250,7 @@ public class CommandQuests implements TabExecutor {
                             if (Bukkit.getPlayer(uuid) == null) {
                                 plugin.getPlayerManager().dropPlayer(uuid);
                             }
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_FULLRESET.getMessage().replace("{player}", name));
+                            QLocale.sendTo(sender, "Command.Admin.ModData.FullReset.Success", name);
                             return true;
                         }
                         showAdminHelp(sender, "moddata");
@@ -260,13 +259,13 @@ public class CommandQuests implements TabExecutor {
                 } else if (args.length == 5) {
                     if (args[1].equalsIgnoreCase("opengui")) {
                         if (args[2].equalsIgnoreCase("c") || args[2].equalsIgnoreCase("category")) {
-                            if (!Options.CATEGORIES_ENABLED.getBooleanValue()) {
-                                sender.sendMessage(Messages.COMMAND_CATEGORY_OPEN_DISABLED.getMessage());
+                            if (!plugin.getSettings().getBoolean("options.categories-enabled")) {
+                                QLocale.sendTo(sender, "Command.Category.Open.Disabled");
                                 return true;
                             }
                             Category category = plugin.getQuestManager().getCategoryById(args[4]);
                             if (category == null) {
-                                sender.sendMessage(Messages.COMMAND_CATEGORY_OPEN_DOESNTEXIST.getMessage().replace("{category}", args[4]));
+                                QLocale.sendTo(sender, "Command.Category.Open.Not-Exist", args[4]);
                                 return true;
                             }
                             Player player = Bukkit.getPlayer(args[3]);
@@ -274,16 +273,14 @@ public class CommandQuests implements TabExecutor {
                                 QPlayer qPlayer = plugin.getPlayerManager().getPlayer(player.getUniqueId());
                                 if (qPlayer != null) {
                                     if (qPlayer.openCategory(category, null, false) == 0) {
-                                        sender.sendMessage(Messages.COMMAND_QUEST_OPENCATEGORY_ADMIN_SUCCESS.getMessage().replace("{player}", player.getName())
-                                                .replace("{category}", category.getId()));
+                                        QLocale.sendTo(sender, "Command.Admin.Opengui.Category.Success", player.getName(), category.getId());
                                     } else {
-                                        sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_CATEGORY_PERMISSION.getMessage().replace("{player}", player.getName())
-                                                .replace("{category}", category.getId()));
+                                        QLocale.sendTo(sender, "Command.Admin.Opengui.Quests.Permission", player.getName(), category.getId());
                                     }
                                     return true;
                                 }
                             }
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_PLAYERNOTFOUND.getMessage().replace("{player}", args[3]));
+                            QLocale.sendTo(sender, "Command.Admin.Not-Found", args[3]);
                             return true;
                         }
                     } else if (args[1].equalsIgnoreCase("moddata")) {
@@ -295,62 +292,62 @@ public class CommandQuests implements TabExecutor {
                             uuid = ofp.getUniqueId();
                             name = ofp.getName();
                         } else {
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_PLAYERNOTFOUND.getMessage().replace("{player}", args[3]));
+                            QLocale.sendTo(sender, "Command.Admin.Not-Found", args[3]);
                             return true;
                         }
                         QPlayer qPlayer = plugin.getPlayerManager().getPlayer(uuid);
                         if (qPlayer == null) {
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_LOADDATA.getMessage().replace("{player}", name));
+                            QLocale.sendTo(sender, "Command.Admin.LoadData", name);
                             plugin.getPlayerManager().loadPlayer(uuid);
                         }
                         if (qPlayer == null) {
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_NODATA.getMessage().replace("{player}", name));
+                            QLocale.sendTo(sender, "Command.Admin.NoData", name);
                             success = true;
                         }
                         qPlayer = plugin.getPlayerManager().getPlayer(uuid); //get again
                         QuestProgressFile questProgressFile = qPlayer.getQuestProgressFile();
                         Quest quest = plugin.getQuestManager().getQuestById(args[4]);
                         if (quest == null) {
-                            sender.sendMessage(Messages.COMMAND_QUEST_START_DOESNTEXIST.getMessage().replace("{quest}", args[4]));
+                            QLocale.sendTo(sender, "Command.Quest.Start.Not-Exist", args[4]);
                             //success = true;
                             return true;
                         }
                         if (args[2].equalsIgnoreCase("reset")) {
                             questProgressFile.generateBlankQuestProgress(quest.getId());
                             questProgressFile.saveToDisk(false);
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_RESET_SUCCESS.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                            QLocale.sendTo(sender, "Command.Admin.Reset.Success", name, quest.getId());
                             success = true;
                         } else if (args[2].equalsIgnoreCase("start")) {
                             QuestStartResult response = questProgressFile.startQuest(quest);
                             if (response == QuestStartResult.QUEST_LIMIT_REACHED) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILLIMIT.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Limit", name, quest.getId());
                                 return true;
                             } else if (response == QuestStartResult.QUEST_ALREADY_COMPLETED) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILCOMPLETE.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Complete", name, quest.getId());
                                 return true;
                             } else if (response == QuestStartResult.QUEST_COOLDOWN) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILCOOLDOWN.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Cooldown", name, quest.getId());
                                 return true;
                             } else if (response == QuestStartResult.QUEST_LOCKED) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILLOCKED.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Locked", name, quest.getId());
                                 return true;
                             } else if (response == QuestStartResult.QUEST_ALREADY_STARTED) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILSTARTED.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Started", name, quest.getId());
                                 return true;
                             } else if (response == QuestStartResult.QUEST_NO_PERMISSION) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILPERMISSION.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Permission", name, quest.getId());
                                 return true;
                             } else if (response == QuestStartResult.NO_PERMISSION_FOR_CATEGORY) {
-                                sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_FAILCATEGORYPERMISSION.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                                QLocale.sendTo(sender, "Command.Admin.ModData.Start.Fail.Category-Perm", name, quest.getId());
                                 return true;
                             }
                             questProgressFile.saveToDisk(false);
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_START_SUCCESS.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                            QLocale.sendTo(sender, "Command.Admin.ModData.Start.Success", name, quest.getId());
                             success = true;
                         } else if (args[2].equalsIgnoreCase("complete")) {
                             questProgressFile.completeQuest(quest);
                             questProgressFile.saveToDisk(false);
-                            sender.sendMessage(Messages.COMMAND_QUEST_ADMIN_COMPLETE_SUCCESS.getMessage().replace("{player}", name).replace("{quest}", quest.getId()));
+                            QLocale.sendTo(sender, "Command.Admin.Complete.Success", name, quest.getId());
                             success = true;
                         }
                         if (!success) {
@@ -373,7 +370,7 @@ public class CommandQuests implements TabExecutor {
 
                     if (args[2].equalsIgnoreCase("s") || args[2].equalsIgnoreCase("start")) {
                         if (quest == null) {
-                            sender.sendMessage(Messages.COMMAND_QUEST_START_DOESNTEXIST.getMessage().replace("{quest}", args[1]));
+                            QLocale.sendTo(sender, "Command.Quest.Start.Not-Exist", args[1]);
                         } else {
                             if (qPlayer == null) {
                                 // shit + fan
@@ -389,20 +386,20 @@ public class CommandQuests implements TabExecutor {
                             qPlayer.getQuestProgressFile().cancelQuest(quest);
                         }
                     } else {
-                        sender.sendMessage(Messages.COMMAND_SUB_DOESNTEXIST.getMessage().replace("{sub}", args[2]));
+                        QLocale.sendTo(sender, "Command.Not-Exist", args[2]);
                     }
                     return true;
                 }
             } else if (sender instanceof Player && (args[0].equalsIgnoreCase("c") || args[0].equalsIgnoreCase("category"))) {
-                if (!Options.CATEGORIES_ENABLED.getBooleanValue()) {
-                    sender.sendMessage(Messages.COMMAND_CATEGORY_OPEN_DISABLED.getMessage());
+                if (!plugin.getSettings().getBoolean("options.categories-enabled")) {
+                    QLocale.sendTo(sender, "Command.Category.Open.Disabled");
                     return true;
                 }
                 Player player = (Player) sender;
                 if (args.length >= 2) {
                     Category category = plugin.getQuestManager().getCategoryById(args[1]);
                     if (category == null) {
-                        sender.sendMessage(Messages.COMMAND_CATEGORY_OPEN_DOESNTEXIST.getMessage().replace("{category}", args[1]));
+                        QLocale.sendTo(sender, "Command.Category.Open.Not-Exist", args[1]);
                     } else {
                         QPlayer qPlayer = plugin.getPlayerManager().getPlayer(player.getUniqueId());
                         qPlayer.openCategory(category, null, false);
@@ -419,52 +416,22 @@ public class CommandQuests implements TabExecutor {
     }
 
     private void showProblems(CommandSender sender) {
-        if (!plugin.getQuestsConfigLoader().getFilesWithProblems().isEmpty()) {
-//            sender.sendMessage(ChatColor.DARK_GRAY.toString() + "----");
+        if (QFiles.getProblemsCount() != 0) {
             sender.sendMessage(ChatColor.GRAY + "Detected problems and potential issues:");
-            Set<QuestsConfigLoader.ConfigProblemType> problemTypes = new HashSet<>();
-            for (Map.Entry<String, List<QuestsConfigLoader.ConfigProblem>> entry : plugin.getQuestsConfigLoader().getFilesWithProblems().entrySet()) {
-                HashMap<QuestsConfigLoader.ConfigProblemType, List<QuestsConfigLoader.ConfigProblem>> sortedProblems = new HashMap<>();
-                for (QuestsConfigLoader.ConfigProblem problem : entry.getValue()) {
-                    if (sortedProblems.containsKey(problem.getType())) {
-                        sortedProblems.get(problem.getType()).add(problem);
-                    } else {
-                        List<QuestsConfigLoader.ConfigProblem> specificProblems = new ArrayList<>();
-                        specificProblems.add(problem);
-                        sortedProblems.put(problem.getType(), specificProblems);
-                    }
-                    problemTypes.add(problem.getType());
+            for (Map.Entry<String, QFiles.Problem> file : QFiles.getProblems().entrySet()) {
+                sender.sendMessage("");
+                QLocale.sendMsgTo(sender, "&7" + file.getKey() + " ---- Problems Count: " + (file.getValue().getErrors().size() + file.getValue().getWarnings().size()));
+                if (!file.getValue().getErrors().isEmpty()) {
+                    QLocale.sendMsgTo(sender, "&7 | - ERRORS: " + file.getValue().getErrors().size());
+                    file.getValue().getErrors().forEach(error -> QLocale.sendMsgTo(sender, "&c      | - " + error));
                 }
-                QuestsConfigLoader.ConfigProblemType highest = null;
-                for (QuestsConfigLoader.ConfigProblemType type : QuestsConfigLoader.ConfigProblemType.values()) {
-                    if (sortedProblems.containsKey(type)) {
-                        highest = type;
-                        break;
-                    }
-                }
-                ChatColor highestColor = ChatColor.WHITE;
-                if (highest != null) {
-                    highestColor = highest.getColor();
-                }
-                sender.sendMessage(highestColor + entry.getKey() + ChatColor.DARK_GRAY + " ----");
-                for (QuestsConfigLoader.ConfigProblemType type : QuestsConfigLoader.ConfigProblemType.values()) {
-                    if (sortedProblems.containsKey(type)) {
-                        for (QuestsConfigLoader.ConfigProblem problem : sortedProblems.get(type)) {
-                            sender.sendMessage(ChatColor.DARK_GRAY + " | - " + problem.getType().getColor()
-                                    + problem.getType().getShortened() + ChatColor.DARK_GRAY + ": "
-                                    + ChatColor.GRAY + problem.getDescription() + ChatColor.DARK_GRAY + " :" + problem.getLocation());
-                        }
-                    }
+                if (!file.getValue().getWarnings().isEmpty()) {
+                    QLocale.sendMsgTo(sender, "&7 | - WARNINGS: " + file.getValue().getWarnings().size());
+                    file.getValue().getWarnings().forEach(warn -> QLocale.sendMsgTo(sender, "&6      | - " + warn));
                 }
             }
-//                            sender.sendMessage(ChatColor.DARK_GRAY.toString() + "----");
-            List<String> legend = new ArrayList<>();
-            for (QuestsConfigLoader.ConfigProblemType type : QuestsConfigLoader.ConfigProblemType.values()) {
-                if (problemTypes.contains(type))
-                    legend.add(type.getColor() + type.getShortened() + ChatColor.DARK_GRAY + " = " + type.getColor() + type.getTitle());
-            }
-            sender.sendMessage(ChatColor.DARK_GRAY.toString() + "----");
-            sender.sendMessage(ChatColor.GRAY.toString() + plugin.getQuestsConfigLoader().getProblemsCount() + " problem(s) | " + String.join(ChatColor.DARK_GRAY + ", ", legend));
+            sender.sendMessage("");
+            QLocale.sendMsgTo(sender, "&7Detected " + QFiles.getProblemsCount() + " problem" + (QFiles.getProblemsCount() > 1 ? "s" : ""));
         } else {
             sender.sendMessage(ChatColor.GRAY + "Quests did not detect any problems with your configuration.");
         }
@@ -548,7 +515,7 @@ public class CommandQuests implements TabExecutor {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        if (!Options.TAB_COMPLETE_ENABLED.getBooleanValue(true)) {
+        if (!plugin.getSettings().getBoolean("options.tab-completion.enabled")) {
             return null;
         }
         if (sender instanceof Player) {

@@ -3,7 +3,6 @@ package com.leonardobishop.quests.quests.tasktypes.types.dependent;
 import com.iridium.iridiumskyblock.Island;
 import com.iridium.iridiumskyblock.api.IslandWorthCalculatedEvent;
 import com.leonardobishop.quests.Quests;
-import com.leonardobishop.quests.QuestsConfigLoader;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
@@ -14,6 +13,7 @@ import com.leonardobishop.quests.quests.Task;
 import com.leonardobishop.quests.quests.tasktypes.ConfigValue;
 import com.leonardobishop.quests.quests.tasktypes.TaskType;
 import com.leonardobishop.quests.quests.tasktypes.TaskUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.scheduler.BukkitTask;
@@ -33,11 +33,16 @@ public final class IridiumSkyblockValueType extends TaskType {
     }
 
     @Override
-    public List<QuestsConfigLoader.ConfigProblem> detectProblemsInConfig(String root, HashMap<String, Object> config) {
-        ArrayList<QuestsConfigLoader.ConfigProblem> problems = new ArrayList<>();
+    public List<String> detectProblemsInConfig(String root, HashMap<String, Object> config) {
+        ArrayList<String> problems = new ArrayList<>();
         if (TaskUtils.configValidateExists(root + ".value", config.get("value"), problems, "value", super.getType()))
             TaskUtils.configValidateInt(root + ".value", config.get("value"), problems, false, false, "value");
         return problems;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return Bukkit.getPluginManager().isPluginEnabled("IridiumSkyblock");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

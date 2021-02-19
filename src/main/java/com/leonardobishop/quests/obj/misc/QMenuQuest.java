@@ -1,8 +1,8 @@
 package com.leonardobishop.quests.obj.misc;
 
 import com.leonardobishop.quests.Quests;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.obj.Items;
-import com.leonardobishop.quests.obj.Options;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.player.questprogressfile.QuestProgress;
 import com.leonardobishop.quests.quests.Quest;
@@ -44,14 +44,14 @@ public class QMenuQuest implements QMenu {
         Collections.sort(quests);
         int slot = 0;
         for (Quest quest : quests) {
-            if (Options.GUI_HIDE_LOCKED.getBooleanValue()) {
+            if (plugin.getSettings().getBoolean("options.gui-hide-locked")) {
                 QuestProgress questProgress = owner.getQuestProgressFile().getQuestProgress(quest);
                 long cooldown = owner.getQuestProgressFile().getCooldownFor(quest);
                 if (!owner.getQuestProgressFile().hasMetRequirements(quest) || (!quest.isRepeatable() && questProgress.isCompletedBefore()) || cooldown > 0) {
                     continue;
                 }
             }
-            if (Options.GUI_HIDE_QUESTS_NOPERMISSION.getBooleanValue() && quest.isPermissionRequired()) {
+            if (plugin.getSettings().getBoolean("options.gui-hide-quests-nopermission") && quest.isPermissionRequired()) {
                 if (!Bukkit.getPlayer(owner.getUuid()).hasPermission("quests.quest." + quest.getId())) {
                     continue;
                 }
@@ -95,7 +95,7 @@ public class QMenuQuest implements QMenu {
         currentPage = page;
         int pageMin = pageSize * (page - 1);
         int pageMax = pageSize * page;
-        String title = Options.color(Options.GUITITLE_QUESTS.getStringValue());
+        String title = QLocale.color(plugin.getSettings().getString("options.guinames.quests-menu"));
 
         ItemStack pageIs;
         ItemStack pagePrevIs;
@@ -107,13 +107,13 @@ public class QMenuQuest implements QMenu {
         int invSlot = 0;
         for (int pointer = pageMin; pointer < pageMax; pointer++) {
             if (slotsToQuestIds.containsKey(pointer)) {
-                Quest quest = Quests.get().getQuestManager().getQuestById(slotsToQuestIds.get(pointer));
+                Quest quest = plugin.getQuestManager().getQuestById(slotsToQuestIds.get(pointer));
                 QuestProgress questProgress = owner.getQuestProgressFile().getQuestProgress(quest);
                 long cooldown = owner.getQuestProgressFile().getCooldownFor(quest);
                 if (!owner.getQuestProgressFile().hasMetRequirements(quest)) {
                     List<String> quests = new ArrayList<>();
                     for (String requirement : quest.getRequirements()) {
-                        quests.add(Quests.get().getQuestManager().getQuestById(requirement).getDisplayNameStripped());
+                        quests.add(plugin.getQuestManager().getQuestById(requirement).getDisplayNameStripped());
                     }
                     Map<String, String> placeholders = new HashMap<>();
                     placeholders.put("{quest}", quest.getDisplayNameStripped());
@@ -132,12 +132,12 @@ public class QMenuQuest implements QMenu {
                     inventory.setItem(invSlot, is);
                 } else if (cooldown > 0) {
                     Map<String, String> placeholders = new HashMap<>();
-                    placeholders.put("{time}", Quests.get().convertToFormat(TimeUnit.SECONDS.convert(cooldown, TimeUnit.MILLISECONDS)));
+                    placeholders.put("{time}", plugin.convertToFormat(TimeUnit.SECONDS.convert(cooldown, TimeUnit.MILLISECONDS)));
                     placeholders.put("{quest}", quest.getDisplayNameStripped());
                     ItemStack is = replaceItemStack(Items.QUEST_COOLDOWN.getItem(), placeholders);
                     inventory.setItem(invSlot, is);
                 } else {
-                    inventory.setItem(invSlot, replaceItemStack(Quests.get().getQuestManager().getQuestById(
+                    inventory.setItem(invSlot, replaceItemStack(plugin.getQuestManager().getQuestById(
                             quest.getId()).getDisplayItem().toItemStack(quest, owner.getQuestProgressFile(), questProgress)));
                 }
             }
@@ -155,7 +155,7 @@ public class QMenuQuest implements QMenu {
         pagePrevIs = replaceItemStack(Items.PAGE_PREV.getItem(), pageplaceholders);
         pageNextIs = replaceItemStack(Items.PAGE_NEXT.getItem(), pageplaceholders);
 
-        if (Options.CATEGORIES_ENABLED.getBooleanValue() && backButtonEnabled) {
+        if (plugin.getSettings().getBoolean("options.categories-enabled") && backButtonEnabled) {
             inventory.setItem(45, back);
             backButtonLocation = 45;
         }
@@ -169,7 +169,7 @@ public class QMenuQuest implements QMenu {
                 inventory.setItem(50, pageNextIs);
                 pageNextLocation = 50;
             }
-        } else if (Options.TRIM_GUI_SIZE.getBooleanValue() && page == 1) {
+        } else if (plugin.getSettings().getBoolean("options.trim-gui-size") && page == 1) {
             int slotsUsed = 0;
             for (int pointer = 0; pointer < pageMax; pointer++) {
                 if (inventory.getItem(pointer) != null) {
@@ -181,7 +181,7 @@ public class QMenuQuest implements QMenu {
             inventorySize = inventorySize <= 0 ? 9 : inventorySize;
             if (inventorySize == 54) {
                 return inventory;
-            } else if (Options.CATEGORIES_ENABLED.getBooleanValue() && backButtonEnabled) {
+            } else if (plugin.getSettings().getBoolean("options.categories-enabled") && backButtonEnabled) {
                 inventorySize += 9;
             }
 
@@ -189,7 +189,7 @@ public class QMenuQuest implements QMenu {
 
             for (int slot = 0; slot < trimmedInventory.getSize(); slot++) {
                 if (slot >= (trimmedInventory.getSize() - 9) && backButtonEnabled){
-                    if (Options.CATEGORIES_ENABLED.getBooleanValue()) {
+                    if (plugin.getSettings().getBoolean("options.categories-enabled")) {
                         trimmedInventory.setItem(slot, back);
                         backButtonLocation = slot;
                     }
@@ -233,8 +233,8 @@ public class QMenuQuest implements QMenu {
             for (String s : lore) {
                 for (Map.Entry<String, String> entry : placeholders.entrySet()) {
                     s = s.replace(entry.getKey(), entry.getValue());
-                    if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
-                        s = plugin.getPlaceholderAPIHook().replacePlaceholders(player, s);
+                    if (QLocale.papi && plugin.getSettings().getBoolean("options.gui-use-placeholderapi")) {
+                        s = QLocale.setPlaceholders(player, s, false);
                     }
                 }
                 newLore.add(s);
@@ -242,8 +242,8 @@ public class QMenuQuest implements QMenu {
         }
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             ism.setDisplayName(ism.getDisplayName().replace(entry.getKey(), entry.getValue()));
-            if (plugin.getPlaceholderAPIHook() != null && Options.GUI_USE_PLACEHOLDERAPI.getBooleanValue()) {
-                ism.setDisplayName(plugin.getPlaceholderAPIHook().replacePlaceholders(player, ism.getDisplayName()));
+            if (QLocale.papi && plugin.getSettings().getBoolean("options.gui-use-placeholderapi")) {
+                ism.setDisplayName(QLocale.setPlaceholders(player, ism.getDisplayName(), false));
             }
         }
         ism.setLore(newLore);

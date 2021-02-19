@@ -4,8 +4,7 @@ import com.leonardobishop.quests.Quests;
 import com.leonardobishop.quests.api.QuestsAPI;
 import com.leonardobishop.quests.api.enums.QuestStartResult;
 import com.leonardobishop.quests.api.events.*;
-import com.leonardobishop.quests.obj.Messages;
-import com.leonardobishop.quests.obj.Options;
+import com.leonardobishop.quests.module.QLocale;
 import com.leonardobishop.quests.player.QPlayer;
 import com.leonardobishop.quests.quests.Quest;
 import com.leonardobishop.quests.quests.Task;
@@ -43,13 +42,13 @@ public class QuestProgressFile {
         questProgress.setCompleted(true);
         questProgress.setCompletedBefore(true);
         questProgress.setCompletionDate(System.currentTimeMillis());
-        if (Options.ALLOW_QUEST_TRACK.getBooleanValue() && Options.QUEST_AUTOTRACK.getBooleanValue() && !(quest.isRepeatable() && !quest.isCooldownEnabled())) {
+        if (plugin.getSettings().getBoolean("options.allow-quest-track") && plugin.getSettings().getBoolean("options.quest-autotrack") && !(quest.isRepeatable() && !quest.isCooldownEnabled())) {
             trackQuest(null);
         }
         Player player = Bukkit.getPlayer(this.playerUUID);
         if (player != null) {
             QPlayer questPlayer = QuestsAPI.getPlayerManager().getPlayer(this.playerUUID);
-            String questFinishMessage = Messages.QUEST_COMPLETE.getMessage().replace("{quest}", quest.getDisplayNameStripped());
+            String questFinishMessage = QLocale.getString("Quest.Complete.Success", quest.getDisplayNameStripped());
             // PlayerFinishQuestEvent -- start
             PlayerFinishQuestEvent questFinishEvent = new PlayerFinishQuestEvent(player, questPlayer, questProgress, questFinishMessage);
             Bukkit.getPluginManager().callEvent(questFinishEvent);
@@ -61,10 +60,8 @@ public class QuestProgressFile {
             });
             if (questFinishEvent.getQuestFinishMessage() != null)
                 player.sendMessage(questFinishEvent.getQuestFinishMessage());
-            if (Options.TITLES_ENABLED.getBooleanValue()) {
-                plugin.getTitle().sendTitle(player, Messages.TITLE_QUEST_COMPLETE_TITLE.getMessage().replace("{quest}", quest
-                        .getDisplayNameStripped()), Messages.TITLE_QUEST_COMPLETE_SUBTITLE.getMessage().replace("{quest}", quest
-                        .getDisplayNameStripped()));
+            if (plugin.getSettings().getBoolean("options.titles-enabled")) {
+                QLocale.sendTitleByName(player, "Quest-Complete", quest.getDisplayNameStripped());
             }
             for (String s : quest.getRewardString()) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', s));
@@ -98,7 +95,7 @@ public class QuestProgressFile {
      */
     public QuestStartResult canStartQuest(Quest quest) {
         Player p = Bukkit.getPlayer(playerUUID);
-        if (getStartedQuests().size() >= Options.QUESTS_START_LIMIT.getIntValue() && !Options.QUEST_AUTOSTART.getBooleanValue()) {
+        if (getStartedQuests().size() >= plugin.getSettings().getInt("options.quest-started-limit") && !plugin.getSettings().getBoolean("options.quest-autostart")) {
             return QuestStartResult.QUEST_LIMIT_REACHED;
         }
         QuestProgress questProgress = getQuestProgress(quest);
@@ -159,27 +156,26 @@ public class QuestProgressFile {
                     // This one is hacky
                     break;
                 case QUEST_LIMIT_REACHED:
-                    questResultMessage = Messages.QUEST_START_LIMIT.getMessage().replace("{limit}", String.valueOf(Options.QUESTS_START_LIMIT.getIntValue()));
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Limit", String.valueOf(plugin.getSettings().getInt("options.quest-started-limit")));
                     break;
                 case QUEST_ALREADY_COMPLETED:
-                    questResultMessage = Messages.QUEST_START_DISABLED.getMessage();
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Disabled");
                     break;
                 case QUEST_COOLDOWN:
                     long cooldown = getCooldownFor(quest);
-                    questResultMessage = Messages.QUEST_START_COOLDOWN.getMessage().replace("{time}", String.valueOf(plugin.convertToFormat(TimeUnit.SECONDS.convert
-                            (cooldown, TimeUnit.MILLISECONDS))));
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Cooldown", String.valueOf(plugin.convertToFormat(TimeUnit.SECONDS.convert(cooldown, TimeUnit.MILLISECONDS))));
                     break;
                 case QUEST_LOCKED:
-                    questResultMessage = Messages.QUEST_START_LOCKED.getMessage();
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Locked");
                     break;
                 case QUEST_ALREADY_STARTED:
-                    questResultMessage = Messages.QUEST_START_STARTED.getMessage();
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Started");
                     break;
                 case QUEST_NO_PERMISSION:
-                    questResultMessage = Messages.QUEST_START_PERMISSION.getMessage();
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Permission");
                     break;
                 case NO_PERMISSION_FOR_CATEGORY:
-                    questResultMessage = Messages.QUEST_CATEGORY_QUEST_PERMISSION.getMessage();
+                    questResultMessage = QLocale.getString("Quest.Start.Fail.Quest-Permission");
                     break;
             }
             QPlayer questPlayer = QuestsAPI.getPlayerManager().getPlayer(this.playerUUID);
@@ -197,23 +193,21 @@ public class QuestProgressFile {
                 taskProgress.setCompleted(false);
                 taskProgress.setProgress(null);
             }
-            if (Options.ALLOW_QUEST_TRACK.getBooleanValue() && Options.QUEST_AUTOTRACK.getBooleanValue()) {
+            if (plugin.getSettings().getBoolean("options.allow-quest-track") && plugin.getSettings().getBoolean("options.quest-autotrack")) {
                 trackQuest(quest);
             }
             questProgress.setCompleted(false);
             if (player != null) {
                 QPlayer questPlayer = QuestsAPI.getPlayerManager().getPlayer(this.playerUUID);
-                String questStartMessage = Messages.QUEST_START.getMessage().replace("{quest}", quest.getDisplayNameStripped());
+                String questStartMessage = QLocale.getString("Quest.Start.Success", quest.getDisplayNameStripped());
                 // PlayerStartQuestEvent -- start
                 PlayerStartQuestEvent questStartEvent = new PlayerStartQuestEvent(player, questPlayer, questProgress, questStartMessage);
                 Bukkit.getPluginManager().callEvent(questStartEvent);
                 // PlayerStartQuestEvent -- end
                 if (questStartEvent.getQuestStartMessage() != null)
                     player.sendMessage(questStartEvent.getQuestStartMessage()); //Don't send a message if the event message is null
-                if (Options.TITLES_ENABLED.getBooleanValue()) {
-                    plugin.getTitle().sendTitle(player, Messages.TITLE_QUEST_START_TITLE.getMessage().replace("{quest}", quest
-                            .getDisplayNameStripped()), Messages.TITLE_QUEST_START_SUBTITLE.getMessage().replace("{quest}", quest
-                            .getDisplayNameStripped()));
+                if (plugin.getSettings().getBoolean("options.titles-enabled")) {
+                    QLocale.sendTitleByName(player, "Quest-Started", quest.getDisplayNameStripped());
                 }
                 for (String s : quest.getStartString()) {
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', s));
@@ -235,7 +229,7 @@ public class QuestProgressFile {
         Player player = Bukkit.getPlayer(this.playerUUID);
         if (!questProgress.isStarted()) {
             if (player != null) {
-                player.sendMessage(Messages.QUEST_CANCEL_NOTSTARTED.getMessage());
+                QLocale.sendTo(player, "Quest.Cancel.Not-Started");
             }
             return false;
         }
@@ -245,7 +239,7 @@ public class QuestProgressFile {
         }
         if (player != null) {
             QPlayer questPlayer = QuestsAPI.getPlayerManager().getPlayer(this.playerUUID);
-            String questCancelMessage = Messages.QUEST_CANCEL.getMessage().replace("{quest}", quest.getDisplayNameStripped());
+            String questCancelMessage = QLocale.getString("Quest.Cancel.Success", quest.getDisplayNameStripped());
             // PlayerCancelQuestEvent -- start
             PlayerCancelQuestEvent questCancelEvent = new PlayerCancelQuestEvent(player, questPlayer, questProgress, questCancelMessage);
             Bukkit.getPluginManager().callEvent(questCancelEvent);
@@ -349,7 +343,7 @@ public class QuestProgressFile {
     }
 
     public boolean hasStartedQuest(Quest quest) {
-        if (Options.QUEST_AUTOSTART.getBooleanValue()) {
+        if (plugin.getSettings().getBoolean("options.quest-autostart")) {
             QuestStartResult response = canStartQuest(quest);
             return response == QuestStartResult.QUEST_SUCCESS || response == QuestStartResult.QUEST_ALREADY_STARTED;
         } else {
@@ -444,11 +438,11 @@ public class QuestProgressFile {
                         .getProgress());
             }
         }
-//
+
         synchronized (this) {
 
             // TODO
-            if (async && Options.QUEST_AUTOSAVE_ASYNC.getBooleanValue()) {
+            if (async && plugin.getSettings().getBoolean("options.performance-tweaking.quests-autosave-async")) {
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                     try {
                         data.save(file);
